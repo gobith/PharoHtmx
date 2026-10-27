@@ -1,0 +1,2 @@
+# Iceberg schrijft LF; houd de working copy gelijk zodat git geen valse wijzigingen ziet
+* text=auto eol=lf

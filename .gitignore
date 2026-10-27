@@ -1,0 +1,8 @@
+# Lokale Claude Code-instellingen
+.claude/settings.local.json
+
+# Pharo-artefacten die per ongeluk hier belanden
+*.image
+*.changes
+*.sources
+pharo-local/
