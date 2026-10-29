@@ -77,6 +77,16 @@ HxComponent >> contents [
 	^ html contents
 ]
 
+{ #category : 'htmx' }
+HxComponent >> hx [
+	"New htmx attributes for an element of mine, to build with a cascade in a view; #action: names my endpoints. See HxHtmxAttributes.
+		<button {{ self hx
+		             action: #edit;
+		             swapOuter }}>Edit</button>"
+
+	^ HxHtmxAttributes for: self class
+]
+
 { #category : 'initialization' }
 HxComponent >> initialize [
 
@@ -126,4 +136,13 @@ HxComponent >> toHtml [
 
 	self render.
 	^ self contents
+]
+
+{ #category : 'rendering' }
+HxComponent >> writeHtmlOn: anHtmlWriter [
+	"Render me where a {{ }} stands for me in a view: {{ HxSpikeTodoItem todo: todo }}."
+
+	self
+		setHtml: anHtmlWriter;
+		render
 ]

@@ -19,7 +19,13 @@ HxSpikeClock class >> tick: request [
 
 { #category : 'rendering' }
 HxSpikeClock >> render [
-<span class="clock" hx-get="{{ self path: #tick }}" hx-trigger="every 1s" hx-swap="outerHTML">{{ self time }}</span>
+<span class="clock"
+  {{ self hx
+       action: #tick;
+       triggerEvery: 1 second;
+       swapOuter }}>
+  {{ self time }}
+</span>
 ]
 
 { #category : 'accessing' }

@@ -27,9 +27,14 @@ HxSpikeBookRow >> book [
 { #category : 'rendering' }
 HxSpikeBookRow >> render [
 <li>
-  <a href="{{ HxSpikeBookDetail pathOf: #show with: book id }}" hx-get="{{ HxSpikeBookDetail pathOf: #show with: book id }}" hx-target="#detail">{{ book title }}</a>
+  <a href="{{ HxSpikeBookDetail pathOf: #show with: book id }}"
+    {{ self hx
+         action: #show of: HxSpikeBookDetail with: book id;
+         target: '#detail' }}>
+    {{ book title }}
+  </a>
   <span class="price">{{ book priceString }}</span>
-  @self render: (HxSpikeAddButton book: book)
+  {{ HxSpikeAddButton book: book }}
 </li>
 ]
 

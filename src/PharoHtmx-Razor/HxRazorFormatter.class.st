@@ -15,7 +15,8 @@ Class {
 		'shifts',
 		'events',
 		'stack',
-		'lineLevels'
+		'lineLevels',
+		'lineIndents'
 	],
 	#category : 'PharoHtmx-Razor',
 	#package : 'PharoHtmx-Razor'
@@ -63,6 +64,16 @@ HxRazorFormatter >> applyEventsFrom: aStart to: aStop [
 						ifFalse: [ self pop ] ] ]
 ]
 
+{ #category : 'accessing' }
+HxRazorFormatter >> columnOf: aPosition [
+	"The column of aPosition in the formatted source, for a line formatted before."
+
+	| index first |
+	index := self lineIndexOf: aPosition.
+	first := self firstNonSeparatorFrom: (lines at: index) first to: (lines at: index) last.
+	^ ((lineIndents at: index) ifNil: [ (lineLevels at: index) * self indentWidth ]) + (aPosition - first)
+]
+
 { #category : 'private' }
 HxRazorFormatter >> continuationAt: aPosition [
 	"The innermost tag or statement that started before aPosition and still goes on there."
@@ -92,11 +103,14 @@ HxRazorFormatter >> format: aParseTree [
 	^ self formatRazorSource: aParseTree razorSource
 ]
 
-{ #category : 'private' }
+{ #category : 'formatting' }
 HxRazorFormatter >> formatLine: anInterval at: anIndex [
-	"The first line is the message pattern. A line that starts inside a literal, pre or textarea is kept; one inside a comment or script moves as far as the line where that started. Any other line is indented one level deeper than the line that opened its element or bracket; a closing tag or bracket at the start goes back to the level of that line, and a continuation line of a tag or statement goes one level deeper than where that started."
+	"The first line is the message pattern. A line that starts inside a literal, pre or textarea is kept; one inside a comment or script moves as far as the line where that started. Any other line is indented one level deeper than the line that opened its element or bracket; a closing tag or bracket at the start goes back to the level of that line, and a continuation line of a tag or statement goes one level deeper than where that started, also a keyword line such as ifTrue: inside a block. A continuation line of a {{ }}, such as the next message of a cascade, lines up one level to the right of the expression after the {{:
+		{{ self hx
+		     action: #tick;
+		     swapOuter }}"
 
-	| line position level region |
+	| line position level region indent |
 	line := razor copyFrom: anInterval first to: anInterval last.
 	anIndex = 1 ifTrue: [ ^ line trimRight ].
 	(self regionAt: anInterval first mode: #keep) ifNotNil: [
@@ -117,16 +131,25 @@ HxRazorFormatter >> formatLine: anInterval at: anIndex [
 						position := self firstNonSeparatorFrom: ((closers at: position) at: 3) + 1 to: anInterval last ] ]
 		ifFalse: [
 				region := self continuationAt: position.
-				(region isNotNil and: [ (self depthAt: position) = (self depthAt: region first) ]) ifTrue: [
-					level := (lineLevels at: (self lineIndexOf: region first)) + 1 ] ].
+				(region isNotNil and: [ (self depthAt: position) = (self depthAt: region first) ])
+					ifTrue: [
+							(self isExpression: region)
+								ifTrue: [ indent := (self columnOf: region first) + 3 + self indentWidth ]
+								ifFalse: [ level := (lineLevels at: (self lineIndexOf: region first)) + 1 ] ]
+					ifFalse: [
+							(self startsWithKeyword: position) ifTrue: [
+									(self statementLineBefore: anIndex depth: (self depthAt: position)) ifNotNil: [ :start |
+											level := (lineLevels at: start) + 1 ] ] ] ].
 	level := level max: 0.
+	indent ifNil: [ indent := level * self indentWidth ].
 	lineLevels at: anIndex put: level.
+	lineIndents at: anIndex put: indent.
 	position ifNotNil: [ self applyEventsFrom: position to: anInterval last ].
-	shifts at: anIndex put: level * self indentWidth - (self widthOf: line).
-	^ (self indentation: level) , line trimBoth
+	shifts at: anIndex put: indent - (self widthOf: line).
+	^ (String new: indent withAll: Character space) , line trimBoth
 ]
 
-{ #category : 'public interface' }
+{ #category : 'formatting' }
 HxRazorFormatter >> formatRazorSource: aString [
 
 	| translator output index |
@@ -136,6 +159,7 @@ HxRazorFormatter >> formatRazorSource: aString [
 	self analyze: translator.
 	shifts := Array new: lines size withAll: 0.
 	lineLevels := Array new: lines size withAll: 0.
+	lineIndents := Array new: lines size.
 	stack := OrderedCollection with: 0.
 	output := WriteStream on: String new.
 	index := 1.
@@ -186,6 +210,13 @@ HxRazorFormatter >> indentation: aLevel [
 	^ String new: aLevel * self indentWidth withAll: Character space
 ]
 
+{ #category : 'testing' }
+HxRazorFormatter >> isExpression: aRegion [
+	"Is aRegion a {{ }} rather than a tag or a statement?"
+
+	^ (razor copyFrom: aRegion first to: (aRegion first + 1 min: razor size)) = '{{'
+]
+
 { #category : 'private' }
 HxRazorFormatter >> keepLevelOf: anInterval at: anIndex [
 	"A line that is kept as it is still opens and closes elements and brackets."
@@ -222,6 +253,29 @@ HxRazorFormatter >> shift: aLine by: aWidth [
 
 	aLine isAllSeparators ifTrue: [ ^ '' ].
 	^ (String new: ((self widthOf: aLine) + aWidth max: 0) withAll: Character space) , aLine trimBoth
+]
+
+{ #category : 'testing' }
+HxRazorFormatter >> startsWithKeyword: aPosition [
+	"Does the line go on with a keyword message from the line before, as ifTrue: or ifFalse: does? An @ in front is skipped; := is an assignment, not a keyword."
+
+	| index |
+	index := aPosition.
+	(razor at: index) = $@ ifTrue: [ index := index + 1 ].
+	(index <= razor size and: [ (razor at: index) isLetter ]) ifFalse: [ ^ false ].
+	[ index <= razor size and: [ (razor at: index) isAlphaNumeric or: [ (razor at: index) = $_ ] ] ] whileTrue: [ index := index + 1 ].
+	^ index < razor size and: [ (razor at: index) = $: and: [ (razor at: index + 1) ~= $= ] ]
+]
+
+{ #category : 'accessing' }
+HxRazorFormatter >> statementLineBefore: anIndex depth: aDepth [
+	"The line where the statement starts that the keyword line anIndex goes on: the nearest line before it at the same depth that neither starts with a keyword nor closes a bracket. Deeper lines, inside the blocks of the statement, are skipped."
+
+	(anIndex - 1 to: 2 by: -1) do: [ :index | | position |
+		position := self firstNonSeparatorFrom: (lines at: index) first to: (lines at: index) last.
+		(position isNotNil and: [ (self depthAt: position) = aDepth and: [ (closers includesKey: position) not and: [ (self startsWithKeyword: position) not ] ] ])
+			ifTrue: [ ^ index ] ].
+	^ nil
 ]
 
 { #category : 'private' }

@@ -31,13 +31,18 @@ HxSpikeTodoList class >> todos: aCollection [
 
 { #category : 'rendering' }
 HxSpikeTodoList >> render [
-<form class="add" hx-post="{{ self path: #add }}" hx-target="#todo-list" hx-swap="beforeend" hx-on::after-request="this.reset()">
+<form class="add"
+  {{ self hx
+       action: #add;
+       target: '#todo-list';
+       swapBeforeEnd;
+       on: 'htmx:after-request' do: 'this.reset()' }}>
   <input name="text" placeholder="Something to do" required>
   <button type="submit">Add</button>
 </form>
 <ul id="todo-list" class="todos">
   @todos do: [ :todo |
-    @self render: (HxSpikeTodoItem todo: todo)
+    {{ HxSpikeTodoItem todo: todo }}
   ]
 </ul>
 ]

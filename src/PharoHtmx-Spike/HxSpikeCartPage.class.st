@@ -24,7 +24,7 @@ HxSpikeCartPage >> cart [
 { #category : 'rendering' }
 HxSpikeCartPage >> render [
 <h1>Cart</h1>
-@self render: (HxSpikeCartTable cart: self cart)
+{{ HxSpikeCartTable cart: self cart }}
 ]
 
 { #category : 'accessing' }

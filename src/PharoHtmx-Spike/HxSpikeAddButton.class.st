@@ -39,6 +39,15 @@ HxSpikeAddButton class >> book: aBook quantity: anIntegerOrNil [
 	^ self new setBook: aBook quantity: anIntegerOrNil
 ]
 
+{ #category : 'htmx' }
+HxSpikeAddButton >> addAction [
+	"Both buttons put the book in the cart; the answer replaces the button."
+
+	^ self hx
+		  action: #add with: book id;
+		  swapOuter
+]
+
 { #category : 'accessing' }
 HxSpikeAddButton >> book [
 
@@ -62,12 +71,12 @@ HxSpikeAddButton >> quantity [
 HxSpikeAddButton >> render [
 @self isAdded
   ifTrue: [
-    <button class="added" hx-post="{{ self path: #add with: book id }}" hx-swap="outerHTML">✓ In cart ({{ quantity }})</button>
+    <button class="added" {{ self addAction }}>✓ In cart ({{ quantity }})</button>
   ]
   ifFalse: [
     @book isAvailable
       ifTrue: [
-        <button hx-post="{{ self path: #add with: book id }}" hx-swap="outerHTML">Add to cart</button>
+        <button {{ self addAction }}>Add to cart</button>
       ]
       ifFalse: [
         <span class="sold-out">Sold out</span>

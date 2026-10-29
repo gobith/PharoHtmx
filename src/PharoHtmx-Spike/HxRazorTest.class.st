@@ -163,6 +163,24 @@ HxRazorTest >> testErrors [
 ]
 
 { #category : 'tests' }
+HxRazorTest >> testExpressionAsStatementInBlock [
+	"Inside a block, a {{ }} at the start of a statement is written as in HTML."
+
+	self
+		assert: (self
+				 render: 'renderTestView: books
+<ul>
+  @books do: [ :book |
+    {{ book title }}
+  ]
+</ul>'
+				 withArguments: { self books }) withInternalLineEndings
+		equals: '<ul>
+  Guards! Guards!Mort
+</ul>' withInternalLineEndings
+]
+
+{ #category : 'tests' }
 HxRazorTest >> testExpressionIsEscaped [
 
 	self

@@ -46,6 +46,16 @@ HxSpikeComponentTest >> testChildrenWriteIntoTheSameHtml [
 ]
 
 { #category : 'tests' }
+HxSpikeComponentTest >> testComponentInDoubleBraces [
+	"{{ aComponent }} renders the component into the same HTML, unescaped."
+
+	| writer |
+	writer := HxHtmlWriter new.
+	writer text: (HxSpikeCartLink cart: HxSpikeCart new).
+	self assert: writer contents equals: '<a id="cart-link" href="/cart">Cart (0)</a>'
+]
+
+{ #category : 'tests' }
 HxSpikeComponentTest >> testEndpointPaths [
 
 	self assert: (HxSpikeClock pathOf: #tick) equals: '/HxSpikeClock/tick'.
@@ -60,6 +70,17 @@ HxSpikeComponentTest >> testHtmxScript [
 
 	self assert: HxHtmxScript new toHtml equals: '<script src="https://unpkg.com/htmx.org@' , HxHtmxScript defaultVersion , '"></script>'.
 	self assert: ((HxHtmxScript version: '2.0.0') toHtml includesSubstring: 'htmx.org@2.0.0"')
+]
+
+{ #category : 'tests' }
+HxSpikeComponentTest >> testHxActionTakesTheMethodFromTheEndpoint [
+
+	| html |
+	html := (HxSpikeNote text: 'Hi') beEditing; toHtml.
+	self assert: (html includesSubstring: '<form class="note-form" hx-put="/HxSpikeNote/save">').
+	self assert: (html includesSubstring: '<div id="note" class="box note" hx-target="this" hx-swap="outerHTML">').
+	html := (HxSpikeTodoItem todo: (HxSpikeTodo id: 7 text: 'x')) toHtml.
+	self assert: (html includesSubstring: 'hx-delete="/showcase/todos/7" hx-confirm="Delete this item?" hx-target="closest li" hx-swap="outerHTML"')
 ]
 
 { #category : 'tests' }
@@ -86,6 +107,7 @@ HxSpikeComponentTest >> testUrlsComeFromTheRoutes [
 
 	| html |
 	html := (HxSpikeBookRow book: (self book: 3)) toHtml.
-	self assert: (html includesSubstring: 'href="/books/3" hx-get="/books/3"').
-	self assert: (html includesSubstring: 'hx-post="/cart/3"')
+	self assert: (html includesSubstring: 'href="/books/3"').
+	self assert: (html includesSubstring: 'hx-get="/books/3" hx-target="#detail"').
+	self assert: (html includesSubstring: 'hx-post="/cart/3" hx-swap="outerHTML"')
 ]

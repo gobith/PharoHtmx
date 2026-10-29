@@ -13,7 +13,7 @@ HxRazorExampleViews >> renderAddButton: book [
 @book isAvailable
   ifTrue: [
     <button hx-post="/cart/{{ book id }}" hx-swap="outerHTML">Add to cart</button>
-  ] 
+  ]
   ifFalse: [
     <span class="sold-out">Sold out</span>
   ]
@@ -50,8 +50,8 @@ HxRazorExampleViews >> renderBooksPage: books cart: cart [
 @self renderLayout: 'Books' cart: cart with: [
   <h1>Books</h1>
   <input type="search" name="q" placeholder="Search for a title…"
-         hx-get="/books" hx-trigger="input changed delay:300ms"
-         hx-target="#book-list" hx-swap="outerHTML">
+    hx-get="/books" hx-trigger="input changed delay:300ms"
+    hx-target="#book-list" hx-swap="outerHTML">
   @self renderBookList: books
   <div id="detail">Click a title for details.</div>
 ]

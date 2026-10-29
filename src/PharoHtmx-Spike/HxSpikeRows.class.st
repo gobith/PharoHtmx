@@ -78,7 +78,11 @@ HxSpikeRows >> render [
 ]
 @self hasMore
   ifTrue: [
-    <tr hx-get="{{ self path: #more }}?page={{ page + 1 }}" hx-trigger="intersect once" hx-swap="outerHTML">
+    <tr
+      {{ self hx
+           action: #more with: (Dictionary with: #page -> (page + 1));
+           triggerIntersectOnce;
+           swapOuter }}>
       <td colspan="2" class="muted">Loading more…</td>
     </tr>
   ]

@@ -34,6 +34,27 @@ HxRazorFormatterTest >> testBestNodeIsFoundInTheRazorSource [
 ]
 
 { #category : 'tests' }
+HxRazorFormatterTest >> testCascadeInDoubleBraces [
+	"The messages of a cascade in a {{ }} line up one level to the right of the expression."
+
+	self
+		assertLines: (self format: 'render
+<span class="clock"
+{{ self hx
+action: #tick;
+swapOuter }}>
+{{ self time }}
+</span>')
+		equals: 'render
+<span class="clock"
+  {{ self hx
+       action: #tick;
+       swapOuter }}>
+  {{ self time }}
+</span>'
+]
+
+{ #category : 'tests' }
 HxRazorFormatterTest >> testClosingAtLineStartDedents [
 
 	self
@@ -193,6 +214,35 @@ HxRazorFormatterTest >> testKeepsLiteralsAndPre [
 ]
 
 { #category : 'tests' }
+HxRazorFormatterTest >> testKeywordLineInBlock [
+	"Inside a block, ifTrue: and ifFalse: go one level deeper than the statement they belong to."
+
+	self
+		assertLines: (self format: 'render
+@a
+ifTrue: [
+@b
+ifTrue: [
+<b>x</b>
+]
+ifFalse: [
+<i>y</i>
+]
+]')
+		equals: 'render
+@a
+  ifTrue: [
+    @b
+      ifTrue: [
+        <b>x</b>
+      ]
+      ifFalse: [
+        <i>y</i>
+      ]
+  ]'
+]
+
+{ #category : 'tests' }
 HxRazorFormatterTest >> testKeywordLinesAreAligned [
 
 	self
@@ -249,6 +299,17 @@ if (a) {
   }
   </script>
 </body>'
+]
+
+{ #category : 'tests' }
+HxRazorFormatterTest >> testTemplatesKeepTheirFormat [
+	"Format leaves every render method of the demo and of the examples as it is, so formatting never moves code around."
+
+	((PackageOrganizer default packageNamed: 'PharoHtmx-Spike') methods select: [ :method |
+		 (method methodClass inheritsFrom: HxComponent) and: [ HxRazorParser isRazorSource: method sourceCode ] ]) do: [ :method |
+			| source |
+			source := method sourceCode withInternalLineEndings.
+			self assert: (self format: source) equals: source ]
 ]
 
 { #category : 'tests' }

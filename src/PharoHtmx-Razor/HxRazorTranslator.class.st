@@ -523,8 +523,8 @@ HxRazorTranslator >> translateRawTextOf: aName [
 { #category : 'translating - smalltalk' }
 HxRazorTranslator >> translateStatement [
 	"After @: copy Smalltalk until all brackets are closed and the line ends or a tag starts. When the next line starts with a keyword (ifTrue:, ifFalse:) the statement goes on there.
-	Inside a block, a <tag at the start of a statement is HTML up to its closing tag, and an @ there is ignored.
-	A line inside a block that starts with a <tag or @ starts a new statement, even without a period."
+	Inside a block, a <tag at the start of a statement is HTML up to its closing tag, a {{ }} there is written as in HTML, and an @ there is ignored.
+	A line inside a block that starts with a <tag, {{ or @ starts a new statement, even without a period."
 
 	| start depth atStatementStart afterLineBreak last |
 	start := pos.
@@ -534,12 +534,16 @@ HxRazorTranslator >> translateStatement [
 	[ self atEnd or: [ depth = 0 and: [ self atTag or: [ self atLineEnd and: [ self atContinuationLine not ] ] ] ] ] whileFalse: [
 			| char |
 			char := self peek.
-			(atStatementStart not and: [ depth > 0 and: [ afterLineBreak and: [ char = $@ or: [ self atTag ] ] ] ]) ifTrue: [
+			(atStatementStart not and: [ depth > 0 and: [ afterLineBreak and: [ char = $@ or: [ self atTag or: [ self atString: '{{' ] ] ] ] ]) ifTrue: [
 					self emit: '.'.
 					atStatementStart := true ].
-			(atStatementStart and: [ depth > 0 and: [ self atTag ] ])
+			(atStatementStart and: [ depth > 0 and: [ self atTag or: [ self atString: '{{' ] ] ])
 				ifTrue: [
-						self translateElement.
+						(self atString: '{{')
+							ifTrue: [
+									textStart := pos.
+									self translateExpression ]
+							ifFalse: [ self translateElement ].
 						afterLineBreak := false.
 						last := $. ]
 				ifFalse: [

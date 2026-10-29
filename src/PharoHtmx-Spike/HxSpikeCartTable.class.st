@@ -74,7 +74,7 @@ HxSpikeCartTable >> cart [
 
 { #category : 'rendering' }
 HxSpikeCartTable >> render [
-<section id="cart" hx-target="this" hx-swap="outerHTML">
+<section id="cart" {{ self hx targetThis; swapOuter }}>
   @cart isEmpty
     ifTrue: [
       <p>Your cart is empty. <a href="{{ HxSpikeBooksPage path }}">Continue shopping</a></p>
@@ -89,12 +89,12 @@ HxSpikeCartTable >> render [
             <tr>
               <td>{{ line book title }}</td>
               <td class="num">
-                <button hx-post="{{ self path: #decrement with: line book id }}">−</button>
+                <button {{ self hx action: #decrement with: line book id }}>−</button>
                 {{ line quantity }}
-                <button hx-post="{{ self path: #increment with: line book id }}">+</button>
+                <button {{ self hx action: #increment with: line book id }}>+</button>
               </td>
               <td class="num">{{ line totalString }}</td>
-              <td class="num"><button hx-post="{{ self path: #remove with: line book id }}">Remove</button></td>
+              <td class="num"><button {{ self hx action: #remove with: line book id }}>Remove</button></td>
             </tr>
           ]
         </tbody>
@@ -102,7 +102,12 @@ HxSpikeCartTable >> render [
           <tr><th>Total</th><th class="num">{{ cart count }}</th><th class="num">{{ cart totalString }}</th><th></th></tr>
         </tfoot>
       </table>
-      <button hx-post="{{ self path: #clear }}" hx-confirm="Empty the cart?">Empty cart</button>
+      <button
+        {{ self hx
+             action: #clear;
+             confirm: 'Empty the cart?' }}>
+        Empty cart
+      </button>
     ]
 </section>
 ]

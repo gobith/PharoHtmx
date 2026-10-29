@@ -36,7 +36,7 @@ HxSpikeBookDetail >> book [
 HxSpikeBookDetail >> render [
 <h2>{{ book title }}</h2>
 <p>Price: {{ book priceString }}</p>
-@self render: (HxSpikeAddButton book: book)
+{{ HxSpikeAddButton book: book }}
 ]
 
 { #category : 'initialization' }

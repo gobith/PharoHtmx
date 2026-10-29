@@ -31,7 +31,14 @@ HxSpikeTodoItem class >> todo: aTodo [
 HxSpikeTodoItem >> render [
 <li>
   <span>{{ todo text }}</span>
-  <button hx-delete="{{ self path: #delete with: todo id }}" hx-confirm="Delete this item?" hx-target="closest li" hx-swap="outerHTML">Delete</button>
+  <button
+    {{ self hx
+         action: #delete with: todo id;
+         confirm: 'Delete this item?';
+         targetClosest: 'li';
+         swapOuter }}>
+    Delete
+  </button>
 </li>
 ]
 

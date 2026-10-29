@@ -45,14 +45,19 @@ HxSpikeBookRow >> setBook: aBook [ book := aBook ]
 ```
 render
 <li>
-  <a href="/books/{{ book id }}" hx-get="/books/{{ book id }}" hx-target="#detail">{{ book title }}</a>
+  <a href="{{ HxSpikeBookDetail pathOf: #show with: book id }}"
+    {{ self hx
+         action: #show of: HxSpikeBookDetail with: book id;
+         target: '#detail' }}>
+    {{ book title }}
+  </a>
   <span class="price">{{ book priceString }}</span>
-  @self render: (HxSpikeAddButton book: book)
+  {{ HxSpikeAddButton book: book }}
 </li>
 ```
 
 - A method whose selector starts with `render` (`render`, `renderRow:`) is HTML. Every other method is plain Smalltalk.
-- `@self render: aComponent` writes a child component into the same HTML.
+- `{{ aComponent }}` writes a child component into the same HTML, also on its own line inside a block. `@self render: aComponent` does the same.
 - `aComponent toHtml` renders a component and answers the HTML.
 - Components are built anew for every request and keep no state between requests.
 - A component answers requests in its class-side endpoint methods; see Endpoints.
@@ -69,7 +74,7 @@ HxSpikeApp >> layoutFor: aPage [
 ]
 ```
 
-The layout's `render` writes the head, then `@self render: header`, then `@self render: page`.
+The layout's `render` writes the head, then `{{ header }}`, then `{{ page }}`.
 
 ## Endpoints
 
@@ -77,18 +82,18 @@ A component answers requests in its class-side methods. A pragma names the HTTP 
 
 ```
 HxSpikeNote >> render
-<div id="note" class="box note" hx-target="this" hx-swap="outerHTML">
+<div id="note" class="box note" {{ self hx targetThis; swapOuter }}>
   @self isEditing
     ifTrue: [
-      <form class="note-form" hx-put="{{ self path: #save }}">
+      <form class="note-form" {{ self hx action: #save }}>
         <input name="text" value="{{ text }}" autofocus>
         <button type="submit">Save</button>
-        <button type="button" hx-get="{{ self path: #cancel }}">Cancel</button>
+        <button type="button" {{ self hx action: #cancel }}>Cancel</button>
       </form>
     ]
     ifFalse: [
       <p>{{ text }}</p>
-      <button hx-get="{{ self path: #edit }}">Edit</button>
+      <button {{ self hx action: #edit }}>Edit</button>
     ]
 </div>
 ```
@@ -110,8 +115,8 @@ HxSpikeNote class >> save: request [
 
 - The pragmas are `<get>`, `<post>`, `<put>`, `<patch>` and `<delete>`. Without a path, an endpoint gets one from its class and selector: `/HxSpikeNote/edit`.
 - Give a path when the endpoint needs a parameter or when people see the URL: `<get: '/books/<id>'>`, `<delete: '/showcase/todos/<id>'>`.
-- A template asks for the path of an action: `self path: #edit`, `self path: #delete with: todo id`, or `HxSpikeStats pathOf: #load` for another component. Values that are not path parameters go into the query string.
-- `hx-target` and `hx-swap` inherit in htmx, so `hx-target="this" hx-swap="outerHTML"` on the outer element makes every button inside replace the whole component.
+- A template sends a request to an action with `self hx action: #edit` (see htmx below). For a plain link it asks for the path: `self path: #edit`, `self path: #delete with: todo id`, or `HxSpikeBookDetail pathOf: #show with: book id` for another component. Values that are not path parameters go into the query string.
+- `hx-target` and `hx-swap` inherit in htmx, so `targetThis; swapOuter` on the outer element makes every button inside replace the whole component.
 - `request at: #id` reads a path parameter, query parameter or form field, and `request app` is the app.
 - An endpoint answers a component, an `HxHtmxResponse`, a String of HTML or a `ZnResponse`.
 - An app lists its pages, components and route classes in `routes`. A class that is not in the list answers nothing. The list is read for every request, so a change to it works at once on a running server, and `/routes` shows every endpoint in its order.
@@ -122,15 +127,46 @@ A page has its path on its class side (`pattern`) and answers itself in the layo
 
 ## htmx
 
-The htmx attributes go in the templates as plain HTML, with the URLs from the endpoints:
+A component builds the htmx attributes of an element with `self hx` and a cascade, one message per line. `{{ }}` in a tag writes them as attributes. A tag with a cascade puts it on a line of its own, the content on the next line and the closing tag under the opening tag:
 
 ```
-<button hx-post="{{ self path: #add with: book id }}" hx-swap="outerHTML">Add to cart</button>
+<button
+  {{ self hx
+       action: #delete with: todo id;
+       confirm: 'Delete this item?';
+       targetClosest: 'li';
+       swapOuter }}>
+  Delete
+</button>
 ```
+
+writes
+
+```html
+<button hx-delete="/showcase/todos/7" hx-confirm="Delete this item?" hx-target="closest li" hx-swap="outerHTML">Delete</button>
+```
+
+- `action:` takes the HTTP method from the endpoint's pragma, so `hx-get`, `hx-post`, `hx-put` and `hx-delete` always match the endpoint. `action:of:` names an endpoint of another component; `get:`, `post:` and the like take a URL.
+- A misspelt message shows up in the editor and fails when the view renders, where the browser ignores a misspelt attribute without a word. Code completion on `self hx` shows what htmx can do.
+- A cascade that two elements share goes in a method of the component, as `addAction` in `HxSpikeAddButton`.
+- `attribute:value:` writes an attribute that has no message, such as `hx-ext`. Plain `hx-` attributes in the HTML still work.
+
+| Group | Messages |
+|---|---|
+| Request | `action:`, `action:with:`, `action:of:`, `action:of:with:`, `get:`, `post:`, `put:`, `patch:`, `delete:` |
+| Target | `target:`, `targetThis`, `targetClosest:`, `targetFind:`, `targetNext:`, `targetPrevious:` |
+| Swap | `swapInner`, `swapOuter`, `swapBeforeBegin`, `swapAfterBegin`, `swapBeforeEnd`, `swapAfterEnd`, `swapDelete`, `swapNone`, `swap:` |
+| Trigger | `triggerOnLoad`, `triggerEvery:`, `triggerRevealed`, `triggerIntersectOnce`, `triggerOnInputDelay:`, `triggerOn:from:`, `trigger:` |
+| Feedback | `confirm:`, `prompt:`, `indicator:`, `disabledElt:`, `sync:` |
+| Address bar | `pushUrl`, `pushUrl:`, `replaceUrl`, `replaceUrl:`, `boost` |
+| Values | `vals:`, `include:`, `select:` |
+| Events | `on:do:` |
+
+Every message has a comment that says what it does and which attribute it writes.
 
 What needs the server has a class of its own:
 
-- `HxHtmxScript` is a component that loads htmx: `@self render: HxHtmxScript new` in the head of a layout.
+- `HxHtmxScript` is a component that loads htmx: `{{ HxHtmxScript new }}` in the head of a layout.
 - `request htmx` is an `HxHtmxRequest`: whether htmx sent the request, whether it was boosted, its target, its trigger, the current URL and the answer to an `hx-prompt`.
 - `HxHtmxResponse` is an answer for htmx: the HTML for the target, components to swap out of band, and the response headers.
 
@@ -165,11 +201,17 @@ The render methods of a component are HTML with Smalltalk in it, and the source 
 
 The editor colours the HTML, CSS and Smalltalk, **Format** indents the HTML and CSS, vertical guides connect opening and closing tags, and the debugger highlights the HTML you are stepping through.
 
+Format keeps the line breaks and sets the indentation, so a formatted method stays as it is when formatted again:
+
+- Each open element or bracket indents its content one level; a closing tag or bracket goes back to the level of the line that opened it.
+- A continuation line of a tag or statement goes one level deeper, and so does a keyword line such as `ifTrue:`, also inside a block.
+- The next lines of a `{{ }}`, such as the messages of a cascade, line up one level to the right of the expression after the `{{`.
+
 ## Packages
 
 | Package | Group | Contents |
 |---|---|---|
-| `PharoHtmx` | Core | `HxApp`, a Zinc server delegate; the routing: `HxEndpoint`, `HxTRoute`, `HxRoute`, `HxRoutePattern`, `HxRouter`; htmx: `HxHtmxRequest`, `HxHtmxResponse` |
+| `PharoHtmx` | Core | `HxApp`, a Zinc server delegate; the routing: `HxEndpoint`, `HxTRoute`, `HxRoute`, `HxRoutePattern`, `HxRouter`; htmx: `HxHtmxAttributes`, `HxHtmxRequest`, `HxHtmxResponse` |
 | `PharoHtmx-Razor` | Razor | `HxComponent`, `HxPage` and `HxHtmxScript`, the Razor compiler, formatter, highlighting and debugger support. Needs Core. |
 | `PharoHtmx-Spike` | Spike | The bookshop demo, its tests and the Razor tests |
 | `PharoHtmx-Tests` | Tests | Routing and htmx tests, and their test routes |

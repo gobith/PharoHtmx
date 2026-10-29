@@ -38,7 +38,7 @@ HxSpikeLayout >> render [
   <head>
     <meta charset="utf-8">
     <title>{{ self title }} · PharoHtmx</title>
-    @self render: HxHtmxScript new
+    {{ HxHtmxScript new }}
     <style>
       body {
         font-family: system-ui, sans-serif;
@@ -259,9 +259,9 @@ HxSpikeLayout >> render [
     </style>
   </head>
   <body>
-    @self render: header
+    {{ header }}
     <main>
-      @self render: page
+      {{ page }}
     </main>
   </body>
 </html>

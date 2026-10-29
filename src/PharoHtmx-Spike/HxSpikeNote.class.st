@@ -61,18 +61,18 @@ HxSpikeNote >> isEditing [
 
 { #category : 'rendering' }
 HxSpikeNote >> render [
-<div id="note" class="box note" hx-target="this" hx-swap="outerHTML">
+<div id="note" class="box note" {{ self hx targetThis; swapOuter }}>
   @self isEditing
     ifTrue: [
-      <form class="note-form" hx-put="{{ self path: #save }}">
+      <form class="note-form" {{ self hx action: #save }}>
         <input name="text" value="{{ text }}" autofocus>
         <button type="submit">Save</button>
-        <button type="button" hx-get="{{ self path: #cancel }}">Cancel</button>
+        <button type="button" {{ self hx action: #cancel }}>Cancel</button>
       </form>
     ]
     ifFalse: [
       <p>{{ text }}</p>
-      <button hx-get="{{ self path: #edit }}">Edit</button>
+      <button {{ self hx action: #edit }}>Edit</button>
     ]
 </div>
 ]

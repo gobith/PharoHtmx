@@ -31,7 +31,7 @@ HxSpikeHeader >> render [
   <nav>
     <a class="dev" href="{{ HxSpikeShowcasePage path }}">Showcase</a>
     <a class="dev" href="{{ HxSpikeRoutesPage path }}">Routes</a>
-    @self render: (HxSpikeCartLink cart: cart)
+    {{ HxSpikeCartLink cart: cart }}
   </nav>
 </header>
 ]

@@ -42,7 +42,7 @@ HxSpikeBookList >> books [
 HxSpikeBookList >> render [
 <ul id="book-list">
   @books do: [ :book |
-    @self render: (HxSpikeBookRow book: book)
+    {{ HxSpikeBookRow book: book }}
   ]
 </ul>
 ]
