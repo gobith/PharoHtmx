@@ -39,7 +39,7 @@ HxSpikeComponentTest >> testChildrenWriteIntoTheSameHtml [
 			         (self book: 1).
 			         (self book: 2) }) toHtml.
 	self assert: (html beginsWith: '<ul id="book-list">').
-	self assert: (html allRangesOfSubstring: '<li>') size equals: 2.
+	self assert: (html allRangesOfSubstring: '<li id="book-') size equals: 2.
 	self assert: (html includesSubstring: 'Add to cart').
 	self assert: (html includesSubstring: 'Sold out').
 	self assert: (html trimRight endsWith: '</ul>')

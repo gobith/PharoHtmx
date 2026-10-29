@@ -37,6 +37,12 @@ HxSpikeBookDetail >> render [
 <h2>{{ book title }}</h2>
 <p>Price: {{ book priceString }}</p>
 {{ HxSpikeAddButton book: book }}
+<button
+  {{ self hx
+       action: #edit: of: HxSpikeBookEditor with: book id;
+       target: '#detail' }}>
+  Edit
+</button>
 ]
 
 { #category : 'initialization' }

@@ -108,6 +108,7 @@ HxSpikeApp >> routes [
 		  HxSpikeBooksPage.
 		  HxSpikeBookList.
 		  HxSpikeBookDetail.
+		  HxSpikeBookEditor.
 		  HxSpikeCartPage.
 		  HxSpikeAddButton.
 		  HxSpikeCartTable.
@@ -119,6 +120,7 @@ HxSpikeApp >> routes [
 		  HxSpikeTodoList.
 		  HxSpikeTodoItem.
 		  HxSpikePings.
+		  HxSpikeProfileCard.
 		  HxSpikeRoutesPage }
 ]
 

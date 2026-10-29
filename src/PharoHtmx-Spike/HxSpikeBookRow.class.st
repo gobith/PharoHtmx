@@ -26,7 +26,7 @@ HxSpikeBookRow >> book [
 
 { #category : 'rendering' }
 HxSpikeBookRow >> render [
-<li>
+<li id="book-{{ book id }}">
   <a href="{{ HxSpikeBookDetail pathOf: #show: with: book id }}"
     {{ self hx
          action: #show: of: HxSpikeBookDetail with: book id;

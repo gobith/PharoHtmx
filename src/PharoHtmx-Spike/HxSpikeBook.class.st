@@ -32,6 +32,53 @@ HxSpikeBook class >> id: anInteger title: aString price: cents available: aBoole
 ]
 
 { #category : 'accessing' }
+HxSpikeBook >> available: aBoolean [
+
+	available := aBoolean
+]
+
+{ #category : 'descriptions' }
+HxSpikeBook >> descriptionAvailable [
+	"Whether the book can be ordered."
+
+	<magritteDescription>
+	^ MABooleanDescription new
+		  accessor: (MASelectorAccessor read: #isAvailable write: #available:);
+		  label: 'Available';
+		  priority: 30;
+		  yourself
+]
+
+{ #category : 'descriptions' }
+HxSpikeBook >> descriptionPrice [
+	"The price in euro cents: required, from 0 to 1000 euro."
+
+	<magritteDescription>
+	^ MANumberDescription new
+		  accessor: #priceInCents;
+		  label: 'Price in cents';
+		  priority: 20;
+		  beRequired;
+		  beInteger;
+		  min: 0 max: 100000;
+		  yourself
+]
+
+{ #category : 'descriptions' }
+HxSpikeBook >> descriptionTitle [
+	"The title: required, at most 100 characters."
+
+	<magritteDescription>
+	^ MAStringDescription new
+		  accessor: #title;
+		  label: 'Title';
+		  priority: 10;
+		  beRequired;
+		  addCondition: [ :value | value size <= 100 ] labelled: 'At most 100 characters';
+		  yourself
+]
+
+{ #category : 'accessing' }
 HxSpikeBook >> id [
 
 	^ id
@@ -47,6 +94,12 @@ HxSpikeBook >> isAvailable [
 HxSpikeBook >> priceInCents [
 
 	^ priceInCents
+]
+
+{ #category : 'accessing' }
+HxSpikeBook >> priceInCents: anInteger [
+
+	priceInCents := anInteger
 ]
 
 { #category : 'accessing' }
@@ -68,4 +121,10 @@ HxSpikeBook >> setId: anInteger title: aString price: cents available: aBoolean 
 HxSpikeBook >> title [
 
 	^ title
+]
+
+{ #category : 'accessing' }
+HxSpikeBook >> title: aString [
+
+	title := aString
 ]

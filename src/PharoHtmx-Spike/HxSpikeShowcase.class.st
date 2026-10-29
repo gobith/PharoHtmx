@@ -1,5 +1,5 @@
 "
-The data behind the examples on the showcase page: the note to edit inline, the to-do list and the number of pings. HxSpikeApp holds one, shared by everyone who visits.
+The data behind the examples on the showcase page: the note to edit inline, the to-do list, the number of pings and the profile of the forms example. HxSpikeApp holds one, shared by everyone who visits.
 "
 Class {
 	#name : 'HxSpikeShowcase',
@@ -8,7 +8,8 @@ Class {
 		'note',
 		'todos',
 		'nextId',
-		'pings'
+		'pings',
+		'profile'
 	],
 	#category : 'PharoHtmx-Spike-Showcase',
 	#package : 'PharoHtmx-Spike',
@@ -57,6 +58,12 @@ HxSpikeShowcase >> ping [
 HxSpikeShowcase >> pings [
 
 	^ pings
+]
+
+{ #category : 'profile' }
+HxSpikeShowcase >> profile [
+
+	^ profile ifNil: [ profile := HxSpikeProfile new ]
 ]
 
 { #category : 'todos' }

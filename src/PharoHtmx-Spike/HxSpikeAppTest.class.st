@@ -183,6 +183,40 @@ HxSpikeAppTest >> testPingFiresAnEvent [
 	self assert: ((self htmx: (ZnRequest get: '/HxSpikePings/reload')) includesSubstring: 'Pings: 1')
 ]
 
+{ #category : 'tests - showcase' }
+HxSpikeAppTest >> testProfileForm [
+	"The profile card edits the profile with a form from its Magritte descriptions; wrong values come back with messages and change nothing."
+
+	| html request |
+	html := self htmx: (ZnRequest get: '/HxSpikeProfileCard/edit').
+	self assert: (html includesSubstring: '<form class="hx-form" hx-put="/HxSpikeProfileCard/save">').
+	self assert: (html includesSubstring: '<textarea id="bio" name="bio" rows="4">').
+	request := ZnRequest put: '/HxSpikeProfileCard/save'.
+	request entity: (ZnApplicationFormUrlEncodedEntity new
+			 at: 'name' put: '';
+			 at: 'email' put: 'nobody';
+			 at: 'age' put: '200';
+			 yourself).
+	html := self htmx: request.
+	self assert: (html includesSubstring: 'Input is required but no input given').
+	self assert: (html includesSubstring: 'An e-mail address has an @ and a dot').
+	self assert: (html includesSubstring: 'Input must be between 0 and 130').
+	self assert: app showcase profile name equals: 'Ada Lovelace'.
+	request := ZnRequest put: '/HxSpikeProfileCard/save'.
+	request entity: (ZnApplicationFormUrlEncodedEntity new
+			 at: 'name' put: 'Grace Hopper';
+			 at: 'email' put: 'grace@example.org';
+			 at: 'age' put: '85';
+			 at: 'bio' put: 'Found the first bug.';
+			 yourself).
+	html := self htmx: request.
+	self assert: (html includesSubstring: '<dt>Name</dt>').
+	self assert: (html includesSubstring: 'Grace Hopper').
+	self assert: (html includesSubstring: '<dt>Newsletter</dt>').
+	self assert: (html includesSubstring: '<dd>No</dd>').
+	self assert: app showcase profile age equals: 85
+]
+
 { #category : 'tests' }
 HxSpikeAppTest >> testRemoveAndClear [
 
@@ -235,7 +269,7 @@ HxSpikeAppTest >> testShowcasePage [
 	| html |
 	html := (self send: (ZnRequest get: '/showcase')) contents.
 	self assert: (html includesSubstring: '<title>htmx showcase · PharoHtmx</title>').
-	self assert: (html allRangesOfSubstring: '<section class="demo">') size equals: 6.
+	self assert: (html allRangesOfSubstring: '<section class="demo">') size equals: 7.
 	self assert: (html includesSubstring: 'hx-trigger="load"').
 	self assert: (html includesSubstring: 'HxSpikeClock class &gt;&gt; tick:')
 ]
@@ -246,7 +280,7 @@ HxSpikeAppTest >> testShowcaseShowsTheHtml [
 
 	| html |
 	html := (self send: (ZnRequest get: '/showcase')) contents.
-	self assert: (html allRangesOfSubstring: '<div class="code-grid">') size equals: 6.
+	self assert: (html allRangesOfSubstring: '<div class="code-grid">') size equals: 7.
 	self assert: (html includesSubstring: '&lt;span class=&quot;clock&quot;').
 	self assert: (html includesSubstring: 'hx-get=&quot;/HxSpikeClock/tick&quot;')
 ]

@@ -259,6 +259,43 @@ HxSpikeLayout >> render [
         white-space: pre-wrap;
         overflow-wrap: anywhere;
       }
+      .stats + button {
+        margin-top: .75rem;
+      }
+      .hx-form {
+        display: grid;
+        gap: .75rem;
+        max-width: 28rem;
+      }
+      .field {
+        display: grid;
+        gap: .25rem;
+      }
+      .field label {
+        font-weight: 600;
+        font-size: .9rem;
+      }
+      .field input[type=text], .field input[type=number], .field textarea {
+        font: inherit;
+        padding: .4rem .6rem;
+        border: 1px solid #d4d4d8;
+        border-radius: .4rem;
+      }
+      .field-checkbox label {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-weight: 400;
+      }
+      .field-error {
+        margin: 0;
+        color: #dc2626;
+        font-size: .85rem;
+      }
+      .hx-form-buttons {
+        display: flex;
+        gap: .5rem;
+      }
       .code-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -275,6 +312,43 @@ HxSpikeLayout >> render [
         color: #71717a;
       }
       @media (max-width: 56rem) {
+        .stats + button {
+          margin-top: .75rem;
+        }
+        .hx-form {
+          display: grid;
+          gap: .75rem;
+          max-width: 28rem;
+        }
+        .field {
+          display: grid;
+          gap: .25rem;
+        }
+        .field label {
+          font-weight: 600;
+          font-size: .9rem;
+        }
+        .field input[type=text], .field input[type=number], .field textarea {
+          font: inherit;
+          padding: .4rem .6rem;
+          border: 1px solid #d4d4d8;
+          border-radius: .4rem;
+        }
+        .field-checkbox label {
+          display: flex;
+          align-items: center;
+          gap: .5rem;
+          font-weight: 400;
+        }
+        .field-error {
+          margin: 0;
+          color: #dc2626;
+          font-size: .85rem;
+        }
+        .hx-form-buttons {
+          display: flex;
+          gap: .5rem;
+        }
         .code-grid {
           grid-template-columns: 1fr;
         }

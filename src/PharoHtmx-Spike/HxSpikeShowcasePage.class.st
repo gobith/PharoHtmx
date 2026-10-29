@@ -95,6 +95,15 @@ HxSpikeShowcasePage >> render [
        methods: { HxSpikePings >> #render. HxSpikePings class >> #ping:. HxSpikePings class >> #reload: }
        examples: { HxSpikePings count: self showcase pings } }}
 </section>
+
+<section class="demo">
+  <h2>Forms from Magritte</h2>
+  <p>The profile describes its fields once, with Magritte: a label, a kind and rules. The card lists the values with those labels, and Edit turns the same descriptions into a form. Leave the name empty, type an e-mail without @@ or an age of 200, and Save shows what is wrong under the field; nothing is stored until all values are valid.</p>
+  {{ HxSpikeProfileCard profile: self showcase profile }}
+  {{ HxSpikeCode
+       methods: { HxSpikeProfile >> #descriptionEmail. HxSpikeProfile >> #descriptionAge. HxSpikeProfileCard >> #render. HxSpikeProfileCard class >> #save: }
+       examples: { HxSpikeProfileCard profile: self showcase profile. (HxSpikeProfileCard profile: self showcase profile) beEditing; yourself } }}
+</section>
 ]
 
 { #category : 'accessing' }

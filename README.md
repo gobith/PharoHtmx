@@ -9,19 +9,30 @@ A small [htmx](https://htmx.org) web UI framework for [Pharo](https://pharo.org)
 In a Pharo 14 image:
 
 ```smalltalk
+"Magritte's baseline still names RPackageOrganizer, and the Grease that Magritte asks for does not know Pharo 14 yet."
+Smalltalk globals at: #RPackageOrganizer put: PackageOrganizer.
+Metacello new
+	baseline: 'Grease';
+	repository: 'github://SeasideSt/Grease:master/repository';
+	load: #( 'Core' ).
+Metacello new
+	baseline: 'Grease';
+	repository: 'github://SeasideSt/Grease:master/repository';
+	lock.
+
 Metacello new
 	baseline: 'PharoHtmx';
 	repository: 'github://gobith/PharoHtmx:main/src';
 	load.
 ```
 
-To load only part of it, add `load: #( 'Core' )` (or `'Razor'`, `'Spike'`, `'Tests'`).
+To load only part of it, add `load: #( 'Core' )` (or `'Razor'`, `'Magritte'`, `'Spike'`, `'Tests'`). Only the `Magritte` group and the demo need Grease and Magritte.
 
 ## Demo
 
 A bookshop with live search, a detail panel and a cart, built from components. `/routes` lists the pages and routes of the app.
 
-`/showcase` shows common htmx patterns working, each with the code of its component and route: lazy loading, polling, infinite scroll, inline editing, adding and deleting with a form, and events from the server.
+`/showcase` shows common htmx patterns working, each with the code of its component and route: lazy loading, polling, infinite scroll, inline editing, adding and deleting with a form, events from the server, and a form made from Magritte descriptions.
 
 ```smalltalk
 HxSpikeApp start.    "http://localhost:8090"
@@ -188,6 +199,43 @@ What needs the server has a class of its own:
 | `trigger:` / `trigger:with:` | `HX-Trigger` | Fires an event in the browser, with details as JSON |
 | `triggerAfterSwap:` / `triggerAfterSettle:` | `HX-Trigger-After-Swap` / `-Settle` | Fires an event later in the swap |
 
+## Forms
+
+The `PharoHtmx-Magritte` module builds forms from [Magritte](https://github.com/magritte-metamodel/magritte) descriptions. An object describes its fields once, with their rules:
+
+```smalltalk
+HxSpikeBook >> descriptionPrice [
+	"The price in euro cents: required, from 0 to 1000 euro."
+	<magritteDescription>
+	^ MANumberDescription new
+		  accessor: #priceInCents;
+		  label: 'Price in cents';
+		  priority: 20;
+		  beRequired;
+		  beInteger;
+		  min: 0 max: 100000;
+		  yourself
+]
+```
+
+`HxMagritteForm` turns those descriptions into a form, reads the values of a request, validates them, and only then writes them to the object. A wrong value shows the form again with what the visitor typed and a message under the field:
+
+```smalltalk
+form := (HxMagritteForm on: book)
+	        submit: (self hx action: #save: with: book id; target: '#detail');
+	        cancel: (self hx action: #show: of: HxSpikeBookDetail with: book id; target: '#detail');
+	        yourself.
+
+"in the endpoint that the form submits to"
+(form saveFrom: request)
+	ifTrue: [ "the book is changed: show its details" ]
+	ifFalse: [ "answer the form, which shows its errors" ]
+```
+
+- `HxMagritteFieldBuilder` visits each description and picks its field: a text field, a number field, a text area or a checkbox. A visit method adds another kind.
+- The form works on a Magritte memento, so the object stays as it is until all values are valid.
+- In the demo, Edit in a book's detail panel opens `HxSpikeBookEditor`; Save shows the details again and updates the book's row in the list out of band.
+
 ## Sessions and CSRF
 
 Every visitor gets a session, with its cookie on the first response. A request that changes something (POST, PUT, PATCH, DELETE) must carry the CSRF token of its session, or the app answers 403 Forbidden. Another site can make a visitor's browser send a request, cookie included, but it cannot read the token from your pages.
@@ -229,6 +277,7 @@ Format keeps the line breaks and sets the indentation, so a formatted method sta
 |---|---|---|
 | `PharoHtmx` | Core | `HxApp`, a Zinc server delegate; the routing: `HxEndpoint`, `HxTRoute`, `HxRoute`, `HxRoutePattern`, `HxRouter`; htmx: `HxHtmxAttributes`, `HxHtmxRequest`, `HxHtmxResponse`; security: `HxSessionManager`, `HxSecureRandom` |
 | `PharoHtmx-Razor` | Razor | `HxComponent`, `HxPage` and `HxHtmxScript`, the Razor compiler, formatter, highlighting and debugger support. Needs Core. |
+| `PharoHtmx-Magritte` | Magritte | `HxMagritteForm` and its fields: forms from Magritte descriptions. Needs Razor, Magritte and Grease. |
 | `PharoHtmx-Spike` | Spike | The bookshop demo, its tests and the Razor tests |
 | `PharoHtmx-Tests` | Tests | Routing, htmx and security tests, and their test routes |
 
