@@ -36,12 +36,14 @@ GeoArchitectureTest >> allowed [
 
 { #category : 'tests' }
 GeoArchitectureTest >> testEveryGeoPackageHasALayer [
-	"A new Geo package must say which packages it may use."
+	"A new package in the framework's repository must say which packages it may use. Applications built on Geo live in other repositories and are not checked."
 
-	| geoPackages |
-	geoPackages := (PackageOrganizer default packages select: [ :each |
-		                (each name beginsWith: 'Geo') and: [ (each name beginsWith: 'Geometry') not ] ]) collect: [ :each | each name ].
-	self assert: (geoPackages reject: [ :each | self allowed includesKey: each ]) asArray equals: #(  )
+	| repository packages |
+	repository := IceRepository registry
+		              detect: [ :each | each includesPackageNamed: self class package name ]
+		              ifNone: [ ^ self skip: 'The framework is not loaded from an Iceberg repository' ].
+	packages := repository workingCopy packageNames reject: [ :each | each beginsWith: 'BaselineOf' ].
+	self assert: (packages reject: [ :each | self allowed includesKey: each ]) asArray equals: #(  )
 ]
 
 { #category : 'tests' }
