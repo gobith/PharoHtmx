@@ -1,79 +1,79 @@
 "
-Example views for the Razor spike.
+Example views for the Razor tests: a book list, buttons, a cart and a page layout with CSS, all as render methods. They cover the syntax the compiler, the formatter and the editor have to deal with; the demo app has components of its own.
 "
 Class {
-	#name : 'HxSpikeBookViews',
-	#superclass : 'HxView',
+	#name : 'HxRazorExampleViews',
+	#superclass : 'HxComponent',
 	#category : 'PharoHtmx-Spike',
 	#package : 'PharoHtmx-Spike'
 }
 
 { #category : 'views' }
-HxSpikeBookViews >> addButton: book [
+HxRazorExampleViews >> renderAddButton: book [
 @book isAvailable
   ifTrue: [
-    <button hx-post="/cart/{{ book id }}" hx-swap="outerHTML">In mandje</button>
+    <button hx-post="/cart/{{ book id }}" hx-swap="outerHTML">Add to cart</button>
   ] 
   ifFalse: [
-    <span class="sold-out">Uitverkocht</span>
+    <span class="sold-out">Sold out</span>
   ]
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> addedToCart: book cart: cart [
-<button class="added" hx-post="/cart/{{ book id }}" hx-swap="outerHTML">✓ In mandje ({{ cart quantityOf: book }})</button>
-@self cartLinkOob: cart
+HxRazorExampleViews >> renderAddedToCart: book cart: cart [
+<button class="added" hx-post="/cart/{{ book id }}" hx-swap="outerHTML">✓ In cart ({{ cart quantityOf: book }})</button>
+@self renderCartLinkOob: cart
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> bookDetail: book [
+HxRazorExampleViews >> renderBookDetail: book [
 <h2>{{ book title }}</h2>
-<p>Prijs: {{ book priceString }}</p>
-@self addButton: book
+<p>Price: {{ book priceString }}</p>
+@self renderAddButton: book
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> bookList: books [
+HxRazorExampleViews >> renderBookList: books [
 <ul id="book-list">
   @books do: [ :book |
     <li>
       <a href="/books/{{ book id }}" hx-get="/books/{{ book id }}" hx-target="#detail">{{ book title }}</a>
       <span class="price">{{ book priceString }}</span>
-      @self addButton: book
+      @self renderAddButton: book
     </li>
   ]
 </ul>
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> booksPage: books cart: cart [
-@self layout: 'Boeken' cart: cart with: [
-  <h1>Boeken</h1>
-  <input type="search" name="q" placeholder="Zoek een titel…"
+HxRazorExampleViews >> renderBooksPage: books cart: cart [
+@self renderLayout: 'Books' cart: cart with: [
+  <h1>Books</h1>
+  <input type="search" name="q" placeholder="Search for a title…"
          hx-get="/books" hx-trigger="input changed delay:300ms"
          hx-target="#book-list" hx-swap="outerHTML">
-  @self bookList: books
-  <div id="detail">Klik op een titel voor details.</div>
+  @self renderBookList: books
+  <div id="detail">Click a title for details.</div>
 ]
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> cartChanged: cart [
-@self cartContents: cart
-@self cartLinkOob: cart
+HxRazorExampleViews >> renderCartChanged: cart [
+@self renderCartContents: cart
+@self renderCartLinkOob: cart
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> cartContents: cart [
+HxRazorExampleViews >> renderCartContents: cart [
 <section id="cart" hx-target="#cart" hx-swap="outerHTML">
   @cart isEmpty
     ifTrue: [
-      <p>Je mandje is leeg. <a href="/books">Verder winkelen</a></p>
+      <p>Your cart is empty. <a href="/books">Continue shopping</a></p>
     ]
     ifFalse: [
       <table>
         <thead>
-          <tr><th>Boek</th><th class="num">Aantal</th><th class="num">Bedrag</th><th></th></tr>
+          <tr><th>Book</th><th class="num">Quantity</th><th class="num">Amount</th><th></th></tr>
         </thead>
         <tbody>
           @cart lines do: [ :line |
@@ -85,42 +85,42 @@ HxSpikeBookViews >> cartContents: cart [
                 <button hx-post="/cart/{{ line book id }}/increment">+</button>
               </td>
               <td class="num">{{ line totalString }}</td>
-              <td class="num"><button hx-post="/cart/{{ line book id }}/remove">Verwijder</button></td>
+              <td class="num"><button hx-post="/cart/{{ line book id }}/remove">Remove</button></td>
             </tr>
           ]
         </tbody>
         <tfoot>
-          <tr><th>Totaal</th><th class="num">{{ cart count }}</th><th class="num">{{ cart totalString }}</th><th></th></tr>
+          <tr><th>Total</th><th class="num">{{ cart count }}</th><th class="num">{{ cart totalString }}</th><th></th></tr>
         </tfoot>
       </table>
-      <button hx-post="/cart/clear" hx-confirm="Mandje leegmaken?">Leegmaken</button>
+      <button hx-post="/cart/clear" hx-confirm="Empty the cart?">Empty cart</button>
     ]
 </section>
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> cartLink: cart [
-<a id="cart-link" href="/cart">Mandje ({{ cart count }})</a>
+HxRazorExampleViews >> renderCartLink: cart [
+<a id="cart-link" href="/cart">Cart ({{ cart count }})</a>
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> cartLinkOob: cart [
-<a id="cart-link" href="/cart" hx-swap-oob="true">Mandje ({{ cart count }})</a>
+HxRazorExampleViews >> renderCartLinkOob: cart [
+<a id="cart-link" href="/cart" hx-swap-oob="true">Cart ({{ cart count }})</a>
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> cartPage: cart [
-@self layout: 'Mandje' cart: cart with: [
-  <h1>Mandje</h1>
-  @self cartContents: cart
+HxRazorExampleViews >> renderCartPage: cart [
+@self renderLayout: 'Cart' cart: cart with: [
+  <h1>Cart</h1>
+  @self renderCartContents: cart
 ]
 ]
 
 { #category : 'views' }
-HxSpikeBookViews >> layout: title cart: cart with: content [
+HxRazorExampleViews >> renderLayout: title cart: cart with: content [
 
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <title>{{ title }} · PharoHtmx</title>
@@ -222,12 +222,41 @@ HxSpikeBookViews >> layout: title cart: cart with: content [
       tfoot th {
         border-bottom: none;
       }
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      nav a.dev {
+        color: #71717a;
+        font-weight: 400;
+      }
+      code {
+        font-size: .9rem;
+      }
+      .method {
+        font-size: .75rem;
+        font-weight: 600;
+        padding: .1rem .4rem;
+        border-radius: .3rem;
+      }
+      .method.get {
+        background: #dbeafe;
+        color: #1d4ed8;
+      }
+      .method.post {
+        background: #dcfce7;
+        color: #15803d;
+      }
     </style>
   </head>
   <body>
     <header>
-      <a href="/books">PharoHtmx Boeken</a>
-      @self cartLink: cart
+      <a href="/books">PharoHtmx Books</a>
+      <nav>
+        <a class="dev" href="/routes">Routes</a>
+        @self renderCartLink: cart
+      </nav>
     </header>
     <main>
       @content value

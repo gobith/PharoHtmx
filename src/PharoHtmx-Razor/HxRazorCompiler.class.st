@@ -1,5 +1,5 @@
 "
-I am the compiler of view classes: I compile Razor-style HTML methods, by way of HxRazorParser.
+I am the compiler of component classes (see HxComponent): their render methods are Razor views, by way of HxRazorParser, and their other methods plain Smalltalk.
 "
 Class {
 	#name : 'HxRazorCompiler',

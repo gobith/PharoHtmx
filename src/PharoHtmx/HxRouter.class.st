@@ -1,9 +1,8 @@
 "
-I hold the routes of an app and dispatch a ZnRequest to the first route that matches its method and path.
+I dispatch a ZnRequest to the route class (see HxRoute) whose method and pattern match it. When several match, the one with the fewest parameters wins, so /cart/clear goes before /cart/<id>.
 
-	router := HxRouter new.
-	router get: '/books/<id>' do: [ :req | 'Book ' , (req at: #id) ].
-	router dispatch: (ZnRequest get: '/books/42')    ""'Book 42'""
+	router := HxRouter routes: { BookList. BookDetail }.
+	router dispatch: (ZnRequest get: '/books/42') for: anApp
 
 I answer nil when no route matches.
 "
@@ -18,53 +17,44 @@ Class {
 	#tag : 'Routing'
 }
 
-{ #category : 'adding' }
-HxRouter >> add: aMethod pattern: aString do: aBlock [
+{ #category : 'instance creation' }
+HxRouter class >> routes: aCollectionOfRouteClasses [
 
-	^ routes add: (HxRoute method: aMethod pattern: aString block: aBlock)
-]
-
-{ #category : 'adding' }
-HxRouter >> delete: aString do: aBlock [
-
-	^ self add: #DELETE pattern: aString do: aBlock
+	^ self new setRoutes: aCollectionOfRouteClasses
 ]
 
 { #category : 'dispatching' }
-HxRouter >> dispatch: aZnRequest [
-	"Answer what the first matching route answers, nil when no route matches."
+HxRouter >> dispatch: aZnRequest for: anApp [
+	"Answer what the matching route answers, nil when no route matches."
 
-	routes do: [ :route | (route match: aZnRequest) ifNotNil: [ :request | ^ route block value: request ] ].
-	^ nil
+	^ (self match: aZnRequest) ifNotNil: [ :match |
+		  match value app: anApp.
+		  match key handle: match value in: anApp ]
 ]
 
-{ #category : 'adding' }
-HxRouter >> get: aString do: aBlock [
+{ #category : 'dispatching' }
+HxRouter >> match: aZnRequest [
+	"Answer routeClass -> HxRequest for the most specific route that matches aZnRequest, nil when none does."
 
-	^ self add: #GET pattern: aString do: aBlock
-]
-
-{ #category : 'initialization' }
-HxRouter >> initialize [
-
-	super initialize.
-	routes := OrderedCollection new
-]
-
-{ #category : 'adding' }
-HxRouter >> post: aString do: aBlock [
-
-	^ self add: #POST pattern: aString do: aBlock
-]
-
-{ #category : 'adding' }
-HxRouter >> put: aString do: aBlock [
-
-	^ self add: #PUT pattern: aString do: aBlock
+	| best bestPattern |
+	routes do: [ :routeClass |
+			| pattern |
+			pattern := routeClass routePattern.
+			(bestPattern isNil or: [ pattern isMoreSpecificThan: bestPattern ]) ifTrue: [
+					(pattern match: aZnRequest) ifNotNil: [ :request |
+							best := routeClass -> request.
+							bestPattern := pattern ] ] ].
+	^ best
 ]
 
 { #category : 'accessing' }
 HxRouter >> routes [
 
 	^ routes
+]
+
+{ #category : 'initialization' }
+HxRouter >> setRoutes: aCollectionOfRouteClasses [
+
+	routes := aCollectionOfRouteClasses asArray
 ]

@@ -10,32 +10,50 @@ Class {
 HxRouterTest >> testDispatchToMatchingRoute [
 
 	| router |
-	router := HxRouter new.
-	router get: '/books' do: [ :req | 'list' ].
-	router get: '/books/<id>' do: [ :req | 'book ' , (req at: #id) ].
-	router post: '/books/<id>' do: [ :req | 'updated ' , (req at: #id) ].
-	self assert: (router dispatch: (ZnRequest get: '/books')) equals: 'list'.
-	self assert: (router dispatch: (ZnRequest get: '/books/42')) equals: 'book 42'.
-	self assert: (router dispatch: (ZnRequest post: '/books/42')) equals: 'updated 42'
+	router := HxRouter routes: {
+			          HxTestBooksRoute.
+			          HxTestBookRoute.
+			          HxTestUpdateBookRoute }.
+	self assert: (router dispatch: (ZnRequest get: '/books') for: nil) equals: 'list'.
+	self assert: (router dispatch: (ZnRequest get: '/books/42') for: nil) equals: 'book 42'.
+	self assert: (router dispatch: (ZnRequest post: '/books/42') for: nil) equals: 'updated 42'
 ]
 
 { #category : 'tests' }
 HxRouterTest >> testDispatchWithoutMatch [
 
 	| router |
-	router := HxRouter new.
-	router get: '/books' do: [ :req | 'list' ].
-	self assert: (router dispatch: (ZnRequest get: '/authors')) isNil.
-	self assert: (router dispatch: (ZnRequest delete: '/books')) isNil
+	router := HxRouter routes: { HxTestBooksRoute }.
+	self assert: (router dispatch: (ZnRequest get: '/authors') for: nil) isNil.
+	self assert: (router dispatch: (ZnRequest delete: '/books') for: nil) isNil
 ]
 
 { #category : 'tests' }
-HxRouterTest >> testFirstMatchingRouteWins [
+HxRouterTest >> testMostSpecificRouteWins [
+	"A literal segment beats a parameter, whatever the order of the routes."
 
-	| router |
-	router := HxRouter new.
-	router get: '/books/new' do: [ :req | 'form' ].
-	router get: '/books/<id>' do: [ :req | 'book' ].
-	self assert: (router dispatch: (ZnRequest get: '/books/new')) equals: 'form'.
-	self assert: (router dispatch: (ZnRequest get: '/books/1')) equals: 'book'
+	#( #( HxTestNewBookRoute HxTestBookRoute ) #( HxTestBookRoute HxTestNewBookRoute ) ) do: [ :names |
+			| router |
+			router := HxRouter routes: (names collect: [ :each | self class environment at: each ]).
+			self assert: (router dispatch: (ZnRequest get: '/books/new') for: nil) equals: 'form'.
+			self assert: (router dispatch: (ZnRequest get: '/books/1') for: nil) equals: 'book 1' ]
+]
+
+{ #category : 'tests' }
+HxRouterTest >> testRouteClassBuildsItsPath [
+
+	self assert: HxTestBooksRoute path equals: '/books'.
+	self assert: (HxTestBookRoute pathWith: 42) equals: '/books/42'
+]
+
+{ #category : 'tests' }
+HxRouterTest >> testRouteKnowsAppAndRequest [
+
+	| app match route |
+	app := HxTestApp new.
+	match := app router match: (ZnRequest get: '/hello/world').
+	self assert: match key equals: HxTestHelloRoute.
+	route := match key new setApp: app request: match value.
+	self assert: route app identicalTo: app.
+	self assert: (route at: #name) equals: 'world'
 ]

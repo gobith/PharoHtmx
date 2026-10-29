@@ -1,5 +1,5 @@
 "
-I parse a Razor view method by translating it to Smalltalk with HxRazorTranslator and parsing the result.
+I parse a method of a component (see HxComponent). A render method is a Razor view: I translate it to Smalltalk with HxRazorTranslator and parse the result. Any other method is plain Smalltalk, which I parse as my superclass does.
 "
 Class {
 	#name : 'HxRazorParser',
@@ -7,6 +7,25 @@ Class {
 	#category : 'PharoHtmx-Razor',
 	#package : 'PharoHtmx-Razor'
 }
+
+{ #category : 'testing' }
+HxRazorParser class >> isRazorSource: aString [
+	"Is aString the source of a Razor view? It is when its selector starts with render, as in render or renderRow: aBook, but not renderer."
+
+	| header rest |
+	header := (aString readStream upTo: Character cr) trimLeft.
+	header := header copyUpTo: Character lf.
+	(header beginsWith: 'render') ifFalse: [ ^ false ].
+	rest := header allButFirst: 6.
+	^ rest isEmpty or: [ rest first isLowercase not ]
+]
+
+{ #category : 'testing' }
+HxRazorParser >> isRazorSource [
+	"Only render methods are Razor views; the other methods of a component are plain Smalltalk."
+
+	^ self class isRazorSource: source
+]
 
 { #category : 'parsing' }
 HxRazorParser >> methodNodeFor: aTranslator failedWith: aRazorError [
@@ -27,6 +46,7 @@ HxRazorParser >> parseMethod [
 	"Translate the Razor source to Smalltalk and parse that. Problems become error notices at their place in the Razor source, so that both compiling and syntax highlighting can deal with half-typed views."
 
 	| translator generated methodNode |
+	self isRazorSource ifFalse: [ ^ super parseMethod ].
 	translator := HxRazorTranslator new.
 	generated := [ translator translate: source ]
 		             on: HxRazorError

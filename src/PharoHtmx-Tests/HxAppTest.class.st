@@ -13,10 +13,7 @@ Class {
 HxAppTest >> setUp [
 
 	super setUp.
-	app := HxApp new.
-	app router
-		get: '/hello/<name>' do: [ :req | '<p>Hallo ' , (req at: #name) , '</p>' ];
-		get: '/old' do: [ :req | ZnResponse redirect: '/new' ]
+	app := HxTestApp new
 ]
 
 { #category : 'running' }
@@ -27,13 +24,24 @@ HxAppTest >> tearDown [
 ]
 
 { #category : 'tests' }
+HxAppTest >> testOnlyListedRoutesAnswer [
+	"HxTestBooksRoute is a route class too, but the app does not list it."
+
+	self assert: app routes asArray equals: {
+			HxTestHelloRoute.
+			HxTestOldRoute }.
+	self assert: (app handleRequest: (ZnRequest get: '/books')) isNotFound.
+	self assert: HxApp new routes isEmpty
+]
+
+{ #category : 'tests' }
 HxAppTest >> testOverHttp [
 
 	| client |
 	app startOn: 18731.
 	client := ZnClient new.
 	[
-		self assert: (client get: 'http://localhost:18731/hello/wereld') equals: '<p>Hallo wereld</p>'.
+		self assert: (client get: 'http://localhost:18731/hello/world') equals: '<p>Hello world</p>'.
 		client get: 'http://localhost:18731/nowhere'.
 		self assert: client response isNotFound ] ensure: [ client close ]
 ]
@@ -48,13 +56,19 @@ HxAppTest >> testResponsePassesThrough [
 ]
 
 { #category : 'tests' }
+HxAppTest >> testRouteSummary [
+
+	self assert: HxTestBooksRoute summary equals: 'The book list.'
+]
+
+{ #category : 'tests' }
 HxAppTest >> testStringBecomesHtmlResponse [
 
 	| response |
 	response := app handleRequest: (ZnRequest get: '/hello/Georges').
 	self assert: response isSuccess.
 	self assert: response contentType equals: ZnMimeType textHtml.
-	self assert: response contents equals: '<p>Hallo Georges</p>'
+	self assert: response contents equals: '<p>Hello Georges</p>'
 ]
 
 { #category : 'tests' }

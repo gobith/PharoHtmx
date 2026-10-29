@@ -8,7 +8,8 @@ Class {
 	#superclass : 'Object',
 	#instVars : [
 		'znRequest',
-		'pathParameters'
+		'pathParameters',
+		'app'
 	],
 	#category : 'PharoHtmx-Routing',
 	#package : 'PharoHtmx',
@@ -19,6 +20,19 @@ Class {
 HxRequest class >> on: aZnRequest pathParameters: aDictionary [
 
 	^ self new setZnRequest: aZnRequest pathParameters: aDictionary
+]
+
+{ #category : 'accessing' }
+HxRequest >> app [
+	"The app that handles me."
+
+	^ app
+]
+
+{ #category : 'initialization' }
+HxRequest >> app: anApp [
+
+	app := anApp
 ]
 
 { #category : 'accessing' }
@@ -46,11 +60,18 @@ HxRequest >> headerAt: aName [
 	^ znRequest headers at: aName ifAbsent: [ nil ]
 ]
 
+{ #category : 'accessing' }
+HxRequest >> htmx [
+	"What htmx tells about this request; see HxHtmxRequest."
+
+	^ HxHtmxRequest on: znRequest
+]
+
 { #category : 'testing' }
 HxRequest >> isHtmx [
-	"htmx sends the header HX-Request: true with every request it makes."
+	"Did htmx send this request?"
 
-	^ (self headerAt: 'HX-Request') = 'true'
+	^ self htmx isHtmx
 ]
 
 { #category : 'accessing' }

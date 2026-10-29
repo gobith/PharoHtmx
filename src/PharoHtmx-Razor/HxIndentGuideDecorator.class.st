@@ -1,5 +1,5 @@
 "
-I draw vertical guides in a code editor that shows a view method (see HxView), from each element or block that spans several lines down to its end, like the indent guides of VS Code. The pair around the cursor is drawn stronger, and when the cursor is in a tag, that tag and its partner are framed.
+I draw vertical guides in a code editor that shows a render method of a component (see HxComponent), from each element or block that spans several lines down to its end, like the indent guides of VS Code. The pair around the cursor is drawn stronger, and when the cursor is in a tag, that tag and its partner are framed.
 
 The pairs come from HxRazorTranslator; I compute them again only when the text has changed. HxRazorMethodNode>>styleWith: adds me to the editor when it styles a view.
 "
@@ -111,11 +111,11 @@ HxIndentGuideDecorator >> guideColor [
 
 { #category : 'testing' }
 HxIndentGuideDecorator >> isShowingView [
-	"Whether the editor shows a view method. The class is known to the Shout styler of the editor, which has no accessor for it."
+	"Whether the editor shows a render method of a component. The class is known to the Shout styler of the editor, which has no accessor for it."
 
 	| class |
 	class := self textArea shoutStyler ifNotNil: [ :decorator | decorator styler instVarNamed: #classOrMetaClass ].
-	^ class isNotNil and: [ class compilerClass = HxRazorCompiler ]
+	^ class isNotNil and: [ class compilerClass = HxRazorCompiler and: [ HxRazorParser isRazorSource: self textArea text asString ] ]
 ]
 
 { #category : 'pairs' }

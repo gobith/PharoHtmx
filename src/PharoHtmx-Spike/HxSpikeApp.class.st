@@ -1,5 +1,7 @@
 "
-A small demo of the router and the Razor views: a book list with live search, a detail panel, and a cart with its own page. The counter in the header follows the cart by way of an htmx out-of-band swap.
+A small demo of the routes and the components: a book list with live search, a detail panel, and a cart with its own page. The counter in the header follows the cart by way of an htmx out-of-band swap.
+
+#routes lists the pages and routes; /routes shows them. #layoutFor: puts every page in the layout, under the header. I hold the data they share.
 
 There is one cart for everyone who visits; per-visitor carts need sessions.
 
@@ -11,7 +13,8 @@ Class {
 	#superclass : 'HxApp',
 	#instVars : [
 		'catalog',
-		'cart'
+		'cart',
+		'showcase'
 	],
 	#classInstVars : [
 		'current'
@@ -37,29 +40,17 @@ HxSpikeApp class >> stop [
 			current := nil ]
 ]
 
-{ #category : 'handlers' }
-HxSpikeApp >> books: req [
-	"The full page, or only the list when htmx asks for it from the search field."
+{ #category : 'data' }
+HxSpikeApp >> booksMatching: aString [
+	"The books whose title contains aString, all books when it is empty."
 
-	| query books |
-	query := req at: #q ifAbsent: [ '' ].
-	books := self catalog select: [ :book | query isEmpty or: [ book title includesSubstring: query caseSensitive: false ] ].
-	^ req isHtmx
-		  ifTrue: [ (self views bookList: books) contents ]
-		  ifFalse: [ (self views booksPage: books cart: self cart) contents ]
+	^ self catalog select: [ :book | aString isEmpty or: [ book title includesSubstring: aString caseSensitive: false ] ]
 ]
 
 { #category : 'data' }
 HxSpikeApp >> cart [
 
 	^ cart ifNil: [ cart := HxSpikeCart new ]
-]
-
-{ #category : 'handlers' }
-HxSpikeApp >> cartChanged [
-	"The cart contents for the cart page, plus the counter in the header."
-
-	^ (self views cartChanged: self cart) contents
 ]
 
 { #category : 'data' }
@@ -99,48 +90,51 @@ HxSpikeApp >> catalog [
 					              available: true) } ]
 ]
 
+{ #category : 'rendering' }
+HxSpikeApp >> layoutFor: aPage [
+	"Every page sits in the layout, under the header."
+
+	^ HxSpikeLayout
+		  header: (HxSpikeHeader cart: self cart)
+		  page: aPage
+]
+
 { #category : 'routes' }
-HxSpikeApp >> routes: aRouter [
+HxSpikeApp >> routes [
+	"The pages, components and route classes that answer requests, in the order /routes shows them. A component answers with the endpoints in its class-side methods."
 
-	aRouter
-		get: '/' do: [ :req | ZnResponse redirect: '/books' ];
-		get: '/books' do: [ :req | self books: req ];
-		get: '/books/<id>' do: [ :req | self withBookFrom: req do: [ :book | (self views bookDetail: book) contents ] ];
-		get: '/cart' do: [ :req | (self views cartPage: self cart) contents ];
-		post: '/cart/clear' do: [ :req |
-				self cart removeAll.
-				self cartChanged ];
-		post: '/cart/<id>' do: [ :req |
-				self withBookFrom: req do: [ :book |
-							self cart add: book.
-							(self views addedToCart: book cart: self cart) contents ] ];
-		post: '/cart/<id>/increment' do: [ :req |
-				self withBookFrom: req do: [ :book |
-							self cart add: book.
-							self cartChanged ] ];
-		post: '/cart/<id>/decrement' do: [ :req |
-				self withBookFrom: req do: [ :book |
-							self cart decrement: book.
-							self cartChanged ] ];
-		post: '/cart/<id>/remove' do: [ :req |
-				self withBookFrom: req do: [ :book |
-							self cart remove: book.
-							self cartChanged ] ]
+	^ {
+		  HxSpikeHomeRoute.
+		  HxSpikeBooksPage.
+		  HxSpikeBookList.
+		  HxSpikeBookDetail.
+		  HxSpikeCartPage.
+		  HxSpikeAddButton.
+		  HxSpikeCartTable.
+		  HxSpikeShowcasePage.
+		  HxSpikeStats.
+		  HxSpikeClock.
+		  HxSpikeRows.
+		  HxSpikeNote.
+		  HxSpikeTodoList.
+		  HxSpikeTodoItem.
+		  HxSpikePings.
+		  HxSpikeRoutesPage }
 ]
 
-{ #category : 'accessing' }
-HxSpikeApp >> views [
+{ #category : 'data' }
+HxSpikeApp >> showcase [
 
-	^ HxSpikeBookViews new
+	^ showcase ifNil: [ showcase := HxSpikeShowcase new ]
 ]
 
-{ #category : 'handlers' }
-HxSpikeApp >> withBookFrom: req do: aBlock [
-	"Evaluate aBlock with the book whose id is in the path; 404 when there is none."
+{ #category : 'data' }
+HxSpikeApp >> withBookFrom: request do: aBlock [
+	"Evaluate aBlock with the book whose id is in the path of request; 404 when there is none."
 
 	| id |
-	id := (req at: #id) asInteger.
+	id := (request at: #id) asInteger.
 	^ (self catalog detect: [ :book | book id = id ] ifNone: [ nil ])
-		  ifNil: [ ZnResponse notFound: req znRequest url ]
+		  ifNil: [ ZnResponse notFound: request znRequest url ]
 		  ifNotNil: [ :book | aBlock value: book ]
 ]

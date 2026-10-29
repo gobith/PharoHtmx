@@ -7,8 +7,8 @@ I describe how to load PharoHtmx with Metacello.
 		load
 
 Groups:
-- Core: the Zinc mini-router (PharoHtmx).
-- Razor: HTML views with the Razor compiler and the editor and debugger support (PharoHtmx-Razor).
+- Core: the app and the routing (PharoHtmx).
+- Razor: components and pages, whose render methods are HTML, with the Razor compiler and the editor and debugger support (PharoHtmx-Razor). Needs Core.
 - Spike: the bookshop demo and the Razor tests (PharoHtmx-Spike).
 - Tests: the router tests (PharoHtmx-Tests).
 
@@ -28,7 +28,7 @@ BaselineOfPharoHtmx >> baseline: spec [
 	spec for: #common do: [
 		spec
 			package: 'PharoHtmx';
-			package: 'PharoHtmx-Razor';
+			package: 'PharoHtmx-Razor' with: [ spec requires: #( 'PharoHtmx' ) ];
 			package: 'PharoHtmx-Tests' with: [ spec requires: #( 'PharoHtmx' ) ];
 			package: 'PharoHtmx-Spike' with: [ spec requires: #( 'PharoHtmx' 'PharoHtmx-Razor' ) ].
 		spec

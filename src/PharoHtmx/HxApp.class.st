@@ -1,7 +1,7 @@
 "
-I am the superclass of a web app. I am the delegate of a ZnServer: I dispatch each request through my router and turn the answer of the route into a ZnResponse.
+I am the superclass of a web app. I am the delegate of a ZnServer: I dispatch each request to one of my route classes (see HxRoute) and turn its answer into a ZnResponse.
 
-Subclasses override #routes: to declare their routes.
+Subclasses override #routes to list their route classes. The list is read for every request, so a change to it works at once on a running server.
 
 	MyApp new startOn: 8080.
 	...
@@ -11,7 +11,6 @@ Class {
 	#name : 'HxApp',
 	#superclass : 'Object',
 	#instVars : [
-		'router',
 		'server'
 	],
 	#category : 'PharoHtmx-Core',
@@ -19,42 +18,49 @@ Class {
 	#tag : 'Core'
 }
 
+{ #category : 'routes' }
+HxApp >> endpoints [
+	"The endpoints of my routes: a route class or page is one endpoint, a component has one per endpoint method."
+
+	^ self routes flatCollect: [ :each | each endpoints ]
+]
+
 { #category : 'request handling' }
 HxApp >> handleRequest: aZnRequest [
 	"Called by the ZnServer for every request."
 
-	^ self responseFor: (router dispatch: aZnRequest) request: aZnRequest
+	^ self responseFor: (self router dispatch: aZnRequest for: self) request: aZnRequest
 ]
 
-{ #category : 'initialization' }
-HxApp >> initialize [
+{ #category : 'rendering' }
+HxApp >> layoutFor: aPage [
+	"The component that is the whole document around aPage. Override to put pages in a layout; by default a page is the whole document itself."
 
-	super initialize.
-	router := HxRouter new.
-	self routes: router
+	^ aPage
 ]
 
 { #category : 'request handling' }
 HxApp >> responseFor: anObject request: aZnRequest [
-	"A route answers a ZnResponse, or a String that becomes an HTML page. nil means no route matched."
+	"A route answers a ZnResponse, something that converts itself with #asZnResponse (a component, an HxHtmxResponse), or a String that becomes an HTML page. nil means no route matched."
 
 	anObject ifNil: [ ^ ZnResponse notFound: aZnRequest url ].
 	(anObject isKindOf: ZnResponse) ifTrue: [ ^ anObject ].
+	(anObject respondsTo: #asZnResponse) ifTrue: [ ^ anObject asZnResponse ].
 	^ ZnResponse ok: (ZnEntity html: anObject asString)
 ]
 
-{ #category : 'accessing' }
+{ #category : 'routes' }
 HxApp >> router [
 
-	^ router
+	^ HxRouter routes: self endpoints
 ]
 
 { #category : 'routes' }
-HxApp >> routes: aRouter [
-	"Override to declare the routes of the app, as in
-		aRouter get: '/books/<id>' do: [ :req | self book: req ]"
+HxApp >> routes [
+	"Override to answer the route classes of the app (see HxRoute), as in
+		^ { BookList. BookDetail }"
 
-	
+	^ #(  )
 ]
 
 { #category : 'accessing' }

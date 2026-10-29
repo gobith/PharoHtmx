@@ -33,7 +33,7 @@ HxIndentGuideDecoratorTest >> guidesChangeTheImageOf: aMethod [
 { #category : 'tests' }
 HxIndentGuideDecoratorTest >> testDrawsOnlyForViews [
 
-	self assert: (self guidesChangeTheImageOf: HxSpikeBookViews >> #bookList:).
+	self assert: (self guidesChangeTheImageOf: HxRazorExampleViews >> #renderBookList:).
 	self deny: (self guidesChangeTheImageOf: HxSpikeCart >> #add:)
 ]
 
@@ -53,7 +53,7 @@ HxIndentGuideDecoratorTest >> testHalfTypedViewKeepsThePairsBeforeTheError [
 HxIndentGuideDecoratorTest >> testPairs [
 
 	| editor decorator pairs |
-	editor := self editorFor: HxSpikeBookViews >> #bookList:.
+	editor := self editorFor: HxRazorExampleViews >> #renderBookList:.
 	HxIndentGuideDecorator installIn: editor textArea.
 	decorator := editor textArea decoratorNamed: HxIndentGuideDecorator key.
 	pairs := decorator pairs.

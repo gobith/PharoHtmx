@@ -16,9 +16,9 @@ Class {
 
 { #category : 'formatting' }
 HxSpikeBook class >> formatCents: anInteger [
-	"Answer anInteger euro cents as Dutch money, as in '€ 12,99'."
+	"Answer anInteger euro cents as money, as in '€12.99'."
 
-	^ '€ ' , (anInteger // 100) printString , ',' , (anInteger \\ 100 printPaddedWith: $0 to: 2)
+	^ '€' , (anInteger // 100) printString , '.' , (anInteger \\ 100 printPaddedWith: $0 to: 2)
 ]
 
 { #category : 'instance creation' }

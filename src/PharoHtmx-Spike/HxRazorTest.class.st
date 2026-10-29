@@ -32,7 +32,7 @@ HxRazorTest >> errorIn: aSource [
 	"Compile aSource and answer the first error: its position in aSource and its message."
 
 	^ [
-		  HxSpikeBookViews compile: aSource classified: 'test'.
+		  HxRazorExampleViews compile: aSource classified: 'test'.
 		  nil ]
 		  on: OCCompilationError
 		  do: [ :error |
@@ -52,11 +52,11 @@ HxRazorTest >> render: aSource [
 HxRazorTest >> render: aSource withArguments: anArray [
 
 	| selector |
-	selector := HxSpikeBookViews compile: aSource classified: 'test'.
+	selector := HxRazorExampleViews compile: aSource classified: 'test'.
 	^ [
-		  (HxSpikeBookViews new
+		  (HxRazorExampleViews new
 			   perform: selector withArguments: anArray;
-			   yourself) contents ] ensure: [ HxSpikeBookViews removeSelector: selector ]
+			   yourself) contents ] ensure: [ HxRazorExampleViews removeSelector: selector ]
 ]
 
 { #category : 'tests' }
@@ -64,25 +64,25 @@ HxRazorTest >> testCallOtherView [
 
 	| html |
 	html := self
-		        render: 'testView: books
+		        render: 'renderTestView: books
 <main>
-@self bookList: books
+@self renderBookList: books
 </main>'
 		        withArguments: { self books }.
 	self assert: (html beginsWith: '<main>').
 	self assert: (html includesSubstring: '<ul id="book-list">').
-	self assert: (html includesSubstring: 'In mandje').
-	self assert: (html includesSubstring: 'Uitverkocht')
+	self assert: (html includesSubstring: 'Add to cart').
+	self assert: (html includesSubstring: 'Sold out')
 ]
 
 { #category : 'tests' }
 HxRazorTest >> testCssStyling [
 
 	| text colorAt source styler |
-	source := (HxSpikeBookViews >> #layout:cart:with:) sourceCode.
+	source := (HxRazorExampleViews >> #renderLayout:cart:with:) sourceCode.
 	styler := SHRBTextStyler new.
 	text := (SHRBTextStyler new
-		         classOrMetaClass: HxSpikeBookViews;
+		         classOrMetaClass: HxRazorExampleViews;
 		         yourself) styledTextFor: source asText.
 	colorAt := [ :aString |
 	           (text attributesAt: (source indexOfSubCollection: aString))
@@ -100,14 +100,14 @@ HxRazorTest >> testDebuggerHighlightsTheRazorSource [
 	"Each place the debugger stops at maps to the HTML, {{ }} or Smalltalk it stands for."
 
 	| selector method source highlighted |
-	selector := HxSpikeBookViews
-		            compile: 'testView: book
+	selector := HxRazorExampleViews
+		            compile: 'renderTestView: book
 <p class="title">{{ book title }}</p>
-@self addButton: book
+@self renderAddButton: book
 <hr>' withInternalLineEndings
 		            classified: 'test'.
 	[
-		method := HxSpikeBookViews >> selector.
+		method := HxRazorExampleViews >> selector.
 		source := method sourceCode.
 		highlighted := method symbolicBytecodes
 			               select: [ :bytecode | method debugInfo shouldStopAt: bytecode offset ]
@@ -118,14 +118,14 @@ HxRazorTest >> testDebuggerHighlightsTheRazorSource [
 		self assert: (highlighted includes: '<p class="title">').
 		self assert: (highlighted includes: '{{ book title }}').
 		self assert: (highlighted includes: '</p>' , String cr).
-		self assert: (highlighted includes: 'addButton: book') ] ensure: [ HxSpikeBookViews removeSelector: selector ]
+		self assert: (highlighted includes: 'renderAddButton: book') ] ensure: [ HxRazorExampleViews removeSelector: selector ]
 ]
 
 { #category : 'tests' }
 HxRazorTest >> testDebuggerStackShowsBlocksInRazor [
 
 	| block stream |
-	block := (HxSpikeBookViews >> #bookList:) literals detect: [ :each | each isCompiledBlock ].
+	block := (HxRazorExampleViews >> #renderBookList:) literals detect: [ :each | each isCompiledBlock ].
 	stream := WriteStream on: String new.
 	StContextPrinter printMethod: block on: stream.
 	self assert: (stream contents beginsWith: '>>[ :book |').
@@ -137,11 +137,11 @@ HxRazorTest >> testDebuggerStackShowsBlocksInRazor [
 HxRazorTest >> testErrorPositionsAreInTheRazorSource [
 
 	| source error |
-	source := 'testView: books
+	source := 'renderTestView: books
 <ul>@books do: [ :book | <li>{{ book title: }}</li> ]</ul>'.
 	error := self errorIn: source.
 	self assert: (source copyFrom: error key to: error key + 1) equals: '}}'.
-	source := 'testView
+	source := 'renderTestView
 <p>{{ 1 + 2 </p>'.
 	error := self errorIn: source.
 	self assert: (source copyFrom: error key to: error key + 1) equals: '{{'
@@ -152,12 +152,12 @@ HxRazorTest >> testErrors [
 
 	self
 		should: [
-				self render: 'testView
+				self render: 'renderTestView
 <p>{{ 1 + </p>' ]
 		raise: OCCompilationError.
 	self
 		should: [
-				self render: 'testView
+				self render: 'renderTestView
 @#( 1 ) do: [ :each | <li>{{ each }} ]' ]
 		raise: OCCompilationError
 ]
@@ -166,7 +166,7 @@ HxRazorTest >> testErrors [
 HxRazorTest >> testExpressionIsEscaped [
 
 	self
-		assert: (self render: 'testView
+		assert: (self render: 'renderTestView
 <p title="{{ ''a "b"'' }}">{{ ''<b>&'' }} {{ 3 + 4 }}</p>')
 		equals: '<p title="a &quot;b&quot;">&lt;b&gt;&amp; 7</p>'
 ]
@@ -175,7 +175,7 @@ HxRazorTest >> testExpressionIsEscaped [
 HxRazorTest >> testHtmlAndCodeLinesInBlock [
 
 	self
-		assert: (self render: 'testView
+		assert: (self render: 'renderTestView
 @#( 1 2 ) do: [ :each |
   <b>{{ each }}</b>
   @self class name size
@@ -189,7 +189,7 @@ HxRazorTest >> testIfTrueIfFalse [
 
 	self
 		assert: (self
-				 render: 'testView: books
+				 render: 'renderTestView: books
 @books do: [ :book |
   @book isAvailable ifTrue: [ <b>{{ book id }}</b> ] ifFalse: [ <i>{{ book id }}</i> ]
 ]'
@@ -202,17 +202,17 @@ HxRazorTest >> testKeywordOnNextLineContinuesStatement [
 
 	self
 		assert: (self
-				 render: 'testView: book
+				 render: 'renderTestView: book
 @book isAvailable
   ifTrue: [
-    <b>ja</b>
+    <b>yes</b>
   ]
   ifFalse: [
-    <i>nee</i>
+    <i>no</i>
   ]
 <p>klaar</p>'
 				 withArguments: { self books first })
-		equals: '<b>ja</b>
+		equals: '<b>yes</b>
 <p>klaar</p>' withInternalLineEndings
 ]
 
@@ -220,7 +220,7 @@ HxRazorTest >> testKeywordOnNextLineContinuesStatement [
 HxRazorTest >> testLiteralAt [
 
 	self
-		assert: (self render: 'testView
+		assert: (self render: 'renderTestView
 <p>georges@soops.nl @@razor</p>')
 		equals: '<p>georges@soops.nl @razor</p>'
 ]
@@ -230,7 +230,7 @@ HxRazorTest >> testLoop [
 
 	self
 		assert: (self
-				 render: 'testView: books
+				 render: 'renderTestView: books
 <ul>@books do: [ :book | <li>{{ book title }}</li> ]</ul>'
 				 withArguments: { self books })
 		equals: '<ul><li>Guards! Guards!</li><li>Mort</li></ul>'
@@ -240,7 +240,7 @@ HxRazorTest >> testLoop [
 HxRazorTest >> testNestedElementsAndVoidElements [
 
 	self
-		assert: (self render: 'testView
+		assert: (self render: 'renderTestView
 @#( 1 2 ) do: [ :each | <div><div>{{ each }}</div><br><img src="x.png" /></div> ]')
 		equals: '<div><div>1</div><br><img src="x.png" /></div><div><div>2</div><br><img src="x.png" /></div>'
 ]
@@ -249,18 +249,18 @@ HxRazorTest >> testNestedElementsAndVoidElements [
 HxRazorTest >> testPlainHtml [
 
 	self
-		assert: (self render: 'testView
-<p class="x">Hallo</p>')
-		equals: '<p class="x">Hallo</p>'
+		assert: (self render: 'renderTestView
+<p class="x">Hello</p>')
+		equals: '<p class="x">Hello</p>'
 ]
 
 { #category : 'tests' }
 HxRazorTest >> testRefusesSourceTonelWouldMisread [
 
 	#( '<p>Tom''s</p>' '<p>15" scherm</p>' '<p>[1</p>' '<p>einde]</p>' ) do: [ :body |
-		self should: [ self render: 'testView' , String cr , body ] raise: OCCompilationError ].
+		self should: [ self render: 'renderTestView' , String cr , body ] raise: OCCompilationError ].
 	self
-		assert: (self render: 'testView
+		assert: (self render: 'renderTestView
 <p>Tom’s &#91;1&#93;</p>')
 		equals: '<p>Tom’s &#91;1&#93;</p>'
 ]
@@ -269,7 +269,7 @@ HxRazorTest >> testRefusesSourceTonelWouldMisread [
 HxRazorTest >> testScriptContentIsRaw [
 
 	self
-		assert: (self render: 'testView
+		assert: (self render: 'renderTestView
 <script>if (a<b) { x = "@y" + {{ 1 + 1 }} }</script>')
 		equals: '<script>if (a<b) { x = "@y" + 2 }</script>'
 ]
@@ -278,18 +278,18 @@ HxRazorTest >> testScriptContentIsRaw [
 HxRazorTest >> testSourceIsKept [
 
 	| method |
-	method := HxSpikeBookViews >> #bookList:.
+	method := HxRazorExampleViews >> #renderBookList:.
 	self assert: (method sourceCode includesSubstring: '@books do: [ :book |').
-	self assert: (method messages includesAll: #( #do: #id #title #priceString #addButton: #raw: #text: ))
+	self assert: (method messages includesAll: #( #do: #id #title #priceString #renderAddButton: #raw: #text: ))
 ]
 
 { #category : 'tests' }
 HxRazorTest >> testStyling [
 
 	| text colorAt source |
-	source := (HxSpikeBookViews >> #addButton:) sourceCode.
+	source := (HxRazorExampleViews >> #renderAddButton:) sourceCode.
 	text := (SHRBTextStyler new
-		         classOrMetaClass: HxSpikeBookViews;
+		         classOrMetaClass: HxRazorExampleViews;
 		         yourself) styledTextFor: source asText.
 	colorAt := [ :aString |
 	           (text attributesAt: (source indexOfSubCollection: aString))
@@ -308,11 +308,11 @@ HxRazorTest >> testTextLineIsNoKeyword [
 
 	| html |
 	html := self
-		        render: 'testView: book
+		        render: 'renderTestView: book
 @book id
 http://pharo.org
-Prijs: 5'
+Price: 5'
 		        withArguments: { self books first }.
 	self assert: (html includesSubstring: 'http://pharo.org').
-	self assert: (html includesSubstring: 'Prijs: 5')
+	self assert: (html includesSubstring: 'Price: 5')
 ]

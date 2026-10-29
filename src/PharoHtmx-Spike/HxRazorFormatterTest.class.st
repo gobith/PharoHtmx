@@ -25,8 +25,8 @@ HxRazorFormatterTest >> format: aString [
 HxRazorFormatterTest >> testBestNodeIsFoundInTheRazorSource [
 
 	| source ast position |
-	source := (HxSpikeBookViews >> #bookList:) sourceCode.
-	ast := HxSpikeBookViews compiler parse: source.
+	source := (HxRazorExampleViews >> #renderBookList:) sourceCode.
+	ast := HxRazorExampleViews compiler parse: source.
 	position := source indexOfSubCollection: 'title'.
 	self assert: (ast bestNodeFor: (position to: position)) selector equals: #title.
 	position := source indexOfSubCollection: '<li>'.
@@ -98,15 +98,15 @@ HxRazorFormatterTest >> testFormatInTheEditor [
 	| morph |
 	morph := RubScrolledTextMorph new.
 	morph beForSmalltalkCode.
-	morph textArea editingMode classOrMetaClass: HxSpikeBookViews.
-	morph setText: 'list: books
+	morph textArea editingMode classOrMetaClass: HxRazorExampleViews.
+	morph setText: 'renderList: books
 <ul>
 @books do: [ :book |
 <li>{{ book title }}</li>
 ]
 </ul>' withInternalLineEndings.
 	morph textArea formatMethodCode.
-	self assertLines: morph text equals: 'list: books
+	self assertLines: morph text equals: 'renderList: books
 <ul>
   @books do: [ :book |
     <li>{{ book title }}</li>
@@ -154,13 +154,13 @@ th ,td,a:hover{ font-family:"A, B" , serif; background:url(data:x;y) }
 HxRazorFormatterTest >> testIndentsElementsAndBlocks [
 
 	self
-		assertLines: (self format: 'list: books
+		assertLines: (self format: 'renderList: books
 		<ul>
 @books do: [ :book |
 <li>{{ book title }}</li>
      ]
 </ul>   ')
-		equals: 'list: books
+		equals: 'renderList: books
 <ul>
   @books do: [ :book |
     <li>{{ book title }}</li>
@@ -222,9 +222,11 @@ ifFalse: [
 HxRazorFormatterTest >> testPlainSmalltalkIsFormattedAsUsual [
 
 	| method |
-	method := HxView >> #contents.
-	self assert: (HxView formatter format: method ast) equals: (EFFormatter new format: method ast).
-	self assert: (HxSpikeBookViews class formatter isKindOf: HxRazorFormatter) not
+	method := HxComponent >> #contents.
+	self assert: (HxComponent formatter format: method ast) equals: (EFFormatter new format: method ast).
+	method := HxSpikeAddButton >> #isAdded.
+	self assert: (HxSpikeAddButton formatter format: method ast) equals: (EFFormatter new format: method ast).
+	self assert: (HxRazorExampleViews class formatter isKindOf: HxRazorFormatter) not
 ]
 
 { #category : 'tests' }
@@ -255,7 +257,7 @@ HxRazorFormatterTest >> testViewsAreFormattedAndKeepTheirMeaning [
 
 	| withoutSeparators |
 	withoutSeparators := [ :source | (HxRazorTranslator new translate: source) reject: [ :char | char isSeparator ] ].
-	HxSpikeBookViews methods do: [ :method |
+	HxRazorExampleViews methods do: [ :method |
 			| source formatted |
 			source := method sourceCode.
 			formatted := HxRazorFormatter new formatRazorSource: source.

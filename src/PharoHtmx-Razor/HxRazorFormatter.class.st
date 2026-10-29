@@ -1,5 +1,5 @@
 "
-I format view methods (see HxView). A view method is not reformatted as Smalltalk but re-indented as Razor source: one level per open element and per open bracket of the Smalltalk code, one extra level for the continuation lines of a tag or statement. Smalltalk literals and pre and textarea content are kept as they are; comments, script and style move along with their first line. Anything that is not a view method is formatted by my superclass.
+I format the methods of components (see HxComponent). A render method is not reformatted as Smalltalk but re-indented as Razor source: one level per open element and per open bracket of the Smalltalk code, one extra level for the continuation lines of a tag or statement. Smalltalk literals and pre and textarea content are kept as they are; comments, script and style move along with their first line. Any other method is formatted by my superclass.
 
 The structure comes from HxRazorTranslator (events and regions), so I indent exactly what the compiler sees.
 "
