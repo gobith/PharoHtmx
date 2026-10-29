@@ -33,7 +33,7 @@ HxSpikeTodoList class >> todos: aCollection [
 HxSpikeTodoList >> render [
 <form class="add"
   {{ self hx
-       action: #add;
+       action: #add:;
        target: '#todo-list';
        swapBeforeEnd;
        on: 'htmx:after-request' do: 'this.reset()' }}>

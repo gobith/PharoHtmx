@@ -18,19 +18,21 @@ HxSpikeShowcasePage class >> pattern [
 { #category : 'rendering' }
 HxSpikeShowcasePage >> render [
 <h1>htmx showcase</h1>
-<p class="lead">Each example is a component with its endpoints. Open Code under an example to see all of it.</p>
+<p class="lead">Each example is a component with its endpoints. Open Code and HTML under an example to see its Smalltalk next to the HTML it writes.</p>
 
 <section class="demo">
   <h2>Lazy loading</h2>
   <p>The figures load after the page, with an indicator while they come: <code>triggerOnLoad</code>.</p>
   <div class="box"
     {{ self hx
-         action: #load of: HxSpikeStats;
+         action: #load: of: HxSpikeStats;
          triggerOnLoad;
          swapOuter }}>
     <span class="htmx-indicator">Loading the figures…</span>
   </div>
-  {{ HxSpikeCode methods: { HxSpikeStats >> #render. HxSpikeStats class >> #load: } }}
+  {{ HxSpikeCode
+       methods: { HxSpikeStats >> #render. HxSpikeStats class >> #load: }
+       examples: { HxSpikeStats books: app catalog } }}
 </section>
 
 <section class="demo">
@@ -39,7 +41,9 @@ HxSpikeShowcasePage >> render [
   <div class="box">
     {{ HxSpikeClock new }}
   </div>
-  {{ HxSpikeCode methods: { HxSpikeClock >> #render. HxSpikeClock class >> #tick: } }}
+  {{ HxSpikeCode
+       methods: { HxSpikeClock >> #render. HxSpikeClock class >> #tick: }
+       examples: { HxSpikeClock new } }}
 </section>
 
 <section class="demo">
@@ -52,21 +56,27 @@ HxSpikeShowcasePage >> render [
       </tbody>
     </table>
   </div>
-  {{ HxSpikeCode methods: { HxSpikeRows >> #render. HxSpikeRows class >> #more: } }}
+  {{ HxSpikeCode
+       methods: { HxSpikeRows >> #render. HxSpikeRows class >> #more: }
+       examples: { HxSpikeRows catalog: app catalog page: 5 } }}
 </section>
 
 <section class="demo">
   <h2>Inline editing</h2>
   <p>One component in two states. Edit swaps the text for a form; Save sends a PUT and swaps the text back. <code>targetThis; swapOuter</code> sits once on the outer element, and the buttons inherit it.</p>
   {{ HxSpikeNote text: self showcase note }}
-  {{ HxSpikeCode methods: { HxSpikeNote >> #render. HxSpikeNote class >> #edit:. HxSpikeNote class >> #save:. HxSpikeNote class >> #cancel: } }}
+  {{ HxSpikeCode
+       methods: { HxSpikeNote >> #render. HxSpikeNote class >> #edit:. HxSpikeNote class >> #save:. HxSpikeNote class >> #cancel: }
+       examples: { HxSpikeNote text: self showcase note. (HxSpikeNote text: self showcase note) beEditing; yourself } }}
 </section>
 
 <section class="demo">
   <h2>Add and delete</h2>
   <p>The form adds an item at the end of the list. Delete asks first, then sends a DELETE and removes the item.</p>
   {{ HxSpikeTodoList todos: self showcase todos }}
-  {{ HxSpikeCode methods: { HxSpikeTodoList >> #render. HxSpikeTodoItem >> #render. HxSpikeTodoList class >> #add:. HxSpikeTodoItem class >> #delete: } }}
+  {{ HxSpikeCode
+       methods: { HxSpikeTodoList >> #render. HxSpikeTodoItem >> #render. HxSpikeTodoList class >> #add:. HxSpikeTodoItem class >> #delete: }
+       examples: { HxSpikeTodoList todos: self showcase todos } }}
 </section>
 
 <section class="demo">
@@ -75,13 +85,15 @@ HxSpikeShowcasePage >> render [
   <div class="box note">
     <button
       {{ self hx
-           action: #ping of: HxSpikePings;
+           action: #ping: of: HxSpikePings;
            swapNone }}>
       Ping the server
     </button>
     {{ HxSpikePings count: self showcase pings }}
   </div>
-  {{ HxSpikeCode methods: { HxSpikePings >> #render. HxSpikePings class >> #ping:. HxSpikePings class >> #reload: } }}
+  {{ HxSpikeCode
+       methods: { HxSpikePings >> #render. HxSpikePings class >> #ping:. HxSpikePings class >> #reload: }
+       examples: { HxSpikePings count: self showcase pings } }}
 </section>
 ]
 

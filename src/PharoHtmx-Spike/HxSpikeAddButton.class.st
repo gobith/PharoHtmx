@@ -44,7 +44,7 @@ HxSpikeAddButton >> addAction [
 	"Both buttons put the book in the cart; the answer replaces the button."
 
 	^ self hx
-		  action: #add with: book id;
+		  action: #add: with: book id;
 		  swapOuter
 ]
 

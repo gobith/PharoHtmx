@@ -11,7 +11,7 @@ A method whose selector starts with render is a Razor view (see HxRazorTranslato
 
 	(BookRow book: aBook) toHtml
 
-A component answers requests in class-side endpoint methods (see HxEndpoint); its templates point at them with self path: #edit.
+A component answers requests in class-side endpoint methods (see HxEndpoint); its templates point at them with self path: #edit:.
 
 Components are built anew for every request and keep no state between requests.
 "
@@ -51,14 +51,14 @@ HxComponent class >> formatter [
 
 { #category : 'routing' }
 HxComponent class >> pathOf: anAction [
-	"The path of my endpoint anAction, as in HxSpikeClock pathOf: #tick."
+	"The path of my endpoint anAction, as in HxSpikeClock pathOf: #tick:."
 
 	^ (HxEndpoint in: self selector: anAction) path
 ]
 
 { #category : 'routing' }
 HxComponent class >> pathOf: anAction with: anObject [
-	"The path of my endpoint anAction with its parameters filled in, as in HxSpikeTodoItem pathOf: #delete with: todo id."
+	"The path of my endpoint anAction with its parameters filled in, as in HxSpikeTodoItem pathOf: #delete: with: todo id."
 
 	^ (HxEndpoint in: self selector: anAction) pathWith: anObject
 ]
@@ -81,7 +81,7 @@ HxComponent >> contents [
 HxComponent >> hx [
 	"New htmx attributes for an element of mine, to build with a cascade in a view; #action: names my endpoints. See HxHtmxAttributes.
 		<button {{ self hx
-		             action: #edit;
+		             action: #edit:;
 		             swapOuter }}>Edit</button>"
 
 	^ HxHtmxAttributes for: self class
@@ -96,14 +96,14 @@ HxComponent >> initialize [
 
 { #category : 'routing' }
 HxComponent >> path: anAction [
-	"The path of my endpoint anAction, as in self path: #edit for the class-side method edit:."
+	"The path of my endpoint anAction, as in self path: #edit: for the class-side method edit:."
 
 	^ self class pathOf: anAction
 ]
 
 { #category : 'routing' }
 HxComponent >> path: anAction with: anObject [
-	"The path of my endpoint anAction with its parameters filled in, as in self path: #delete with: todo id."
+	"The path of my endpoint anAction with its parameters filled in, as in self path: #delete: with: todo id."
 
 	^ self class pathOf: anAction with: anObject
 ]

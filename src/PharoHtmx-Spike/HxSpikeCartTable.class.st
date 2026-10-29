@@ -89,12 +89,12 @@ HxSpikeCartTable >> render [
             <tr>
               <td>{{ line book title }}</td>
               <td class="num">
-                <button {{ self hx action: #decrement with: line book id }}>−</button>
+                <button {{ self hx action: #decrement: with: line book id }}>−</button>
                 {{ line quantity }}
-                <button {{ self hx action: #increment with: line book id }}>+</button>
+                <button {{ self hx action: #increment: with: line book id }}>+</button>
               </td>
               <td class="num">{{ line totalString }}</td>
-              <td class="num"><button {{ self hx action: #remove with: line book id }}>Remove</button></td>
+              <td class="num"><button {{ self hx action: #remove: with: line book id }}>Remove</button></td>
             </tr>
           ]
         </tbody>
@@ -104,7 +104,7 @@ HxSpikeCartTable >> render [
       </table>
       <button
         {{ self hx
-             action: #clear;
+             action: #clear:;
              confirm: 'Empty the cart?' }}>
         Empty cart
       </button>

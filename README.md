@@ -45,9 +45,9 @@ HxSpikeBookRow >> setBook: aBook [ book := aBook ]
 ```
 render
 <li>
-  <a href="{{ HxSpikeBookDetail pathOf: #show with: book id }}"
+  <a href="{{ HxSpikeBookDetail pathOf: #show: with: book id }}"
     {{ self hx
-         action: #show of: HxSpikeBookDetail with: book id;
+         action: #show: of: HxSpikeBookDetail with: book id;
          target: '#detail' }}>
     {{ book title }}
   </a>
@@ -85,15 +85,15 @@ HxSpikeNote >> render
 <div id="note" class="box note" {{ self hx targetThis; swapOuter }}>
   @self isEditing
     ifTrue: [
-      <form class="note-form" {{ self hx action: #save }}>
+      <form class="note-form" {{ self hx action: #save: }}>
         <input name="text" value="{{ text }}" autofocus>
         <button type="submit">Save</button>
-        <button type="button" {{ self hx action: #cancel }}>Cancel</button>
+        <button type="button" {{ self hx action: #cancel: }}>Cancel</button>
       </form>
     ]
     ifFalse: [
       <p>{{ text }}</p>
-      <button {{ self hx action: #edit }}>Edit</button>
+      <button {{ self hx action: #edit: }}>Edit</button>
     ]
 </div>
 ```
@@ -115,7 +115,7 @@ HxSpikeNote class >> save: request [
 
 - The pragmas are `<get>`, `<post>`, `<put>`, `<patch>` and `<delete>`. Without a path, an endpoint gets one from its class and selector: `/HxSpikeNote/edit`.
 - Give a path when the endpoint needs a parameter or when people see the URL: `<get: '/books/<id>'>`, `<delete: '/showcase/todos/<id>'>`.
-- A template sends a request to an action with `self hx action: #edit` (see htmx below). For a plain link it asks for the path: `self path: #edit`, `self path: #delete with: todo id`, or `HxSpikeBookDetail pathOf: #show with: book id` for another component. Values that are not path parameters go into the query string.
+- A template sends a request to an action with `self hx action: #edit:` (see htmx below). Always write the full selector, colon included, so that implementors of it lead to the endpoint; `#edit` without the colon fails with a message that says so. For a plain link it asks for the path: `self path: #edit:`, `self path: #delete: with: todo id`, or `HxSpikeBookDetail pathOf: #show: with: book id` for another component. Values that are not path parameters go into the query string.
 - `hx-target` and `hx-swap` inherit in htmx, so `targetThis; swapOuter` on the outer element makes every button inside replace the whole component.
 - `request at: #id` reads a path parameter, query parameter or form field, and `request app` is the app.
 - An endpoint answers a component, an `HxHtmxResponse`, a String of HTML or a `ZnResponse`.
@@ -132,7 +132,7 @@ A component builds the htmx attributes of an element with `self hx` and a cascad
 ```
 <button
   {{ self hx
-       action: #delete with: todo id;
+       action: #delete: with: todo id;
        confirm: 'Delete this item?';
        targetClosest: 'li';
        swapOuter }}>

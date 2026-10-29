@@ -21,7 +21,7 @@ HxSpikeClock class >> tick: request [
 HxSpikeClock >> render [
 <span class="clock"
   {{ self hx
-       action: #tick;
+       action: #tick:;
        triggerEvery: 1 second;
        swapOuter }}>
   {{ self time }}

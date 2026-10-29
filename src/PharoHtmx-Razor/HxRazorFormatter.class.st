@@ -107,7 +107,7 @@ HxRazorFormatter >> format: aParseTree [
 HxRazorFormatter >> formatLine: anInterval at: anIndex [
 	"The first line is the message pattern. A line that starts inside a literal, pre or textarea is kept; one inside a comment or script moves as far as the line where that started. Any other line is indented one level deeper than the line that opened its element or bracket; a closing tag or bracket at the start goes back to the level of that line, and a continuation line of a tag or statement goes one level deeper than where that started, also a keyword line such as ifTrue: inside a block. A continuation line of a {{ }}, such as the next message of a cascade, lines up one level to the right of the expression after the {{:
 		{{ self hx
-		     action: #tick;
+		     action: #tick:;
 		     swapOuter }}"
 
 	| line position level region indent |

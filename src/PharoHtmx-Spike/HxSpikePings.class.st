@@ -47,7 +47,7 @@ HxSpikePings >> count [
 HxSpikePings >> render [
 <span id="pings"
   {{ self hx
-       action: #reload;
+       action: #reload:;
        triggerOn: 'pinged' from: 'body';
        swapOuter }}>
   Pings: {{ count }}

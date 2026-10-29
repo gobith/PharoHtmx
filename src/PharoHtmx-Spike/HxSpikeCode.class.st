@@ -1,11 +1,12 @@
 "
-The source of some methods, under a Code toggle, to show how an example on the showcase page is made.
+The code of an example on the showcase page, under a toggle: the source of its methods on the left and the HTML its components write on the right.
 "
 Class {
 	#name : 'HxSpikeCode',
 	#superclass : 'HxComponent',
 	#instVars : [
-		'methods'
+		'methods',
+		'examples'
 	],
 	#category : 'PharoHtmx-Spike-Showcase',
 	#package : 'PharoHtmx-Spike',
@@ -13,9 +14,16 @@ Class {
 }
 
 { #category : 'instance creation' }
-HxSpikeCode class >> methods: aCollection [
+HxSpikeCode class >> methods: aCollection examples: aCollectionOfComponents [
+	"Show the source of aCollection of methods next to the HTML that aCollectionOfComponents write."
 
-	^ self new setMethods: aCollection
+	^ self new setMethods: aCollection examples: aCollectionOfComponents
+]
+
+{ #category : 'accessing' }
+HxSpikeCode >> examples [
+
+	^ examples
 ]
 
 { #category : 'accessing' }
@@ -27,15 +35,27 @@ HxSpikeCode >> methods [
 { #category : 'rendering' }
 HxSpikeCode >> render [
 <details class="code">
-  <summary>Code</summary>
-  @methods do: [ :method |
-    <pre><code>{{ method methodClass name }} &gt;&gt; {{ method sourceCode }}</code></pre>
-  ]
+  <summary>Code and HTML</summary>
+  <div class="code-grid">
+    <div>
+      <h3>Smalltalk</h3>
+      @methods do: [ :method |
+        <pre><code>{{ method methodClass name }} &gt;&gt; {{ method sourceCode }}</code></pre>
+      ]
+    </div>
+    <div>
+      <h3>HTML</h3>
+      @examples do: [ :example |
+        <pre><code>{{ example toHtml }}</code></pre>
+      ]
+    </div>
+  </div>
 </details>
 ]
 
 { #category : 'initialization' }
-HxSpikeCode >> setMethods: aCollection [
+HxSpikeCode >> setMethods: aCollection examples: aCollectionOfComponents [
 
-	methods := aCollection
+	methods := aCollection.
+	examples := aCollectionOfComponents
 ]

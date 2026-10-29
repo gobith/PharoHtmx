@@ -64,15 +64,15 @@ HxSpikeNote >> render [
 <div id="note" class="box note" {{ self hx targetThis; swapOuter }}>
   @self isEditing
     ifTrue: [
-      <form class="note-form" {{ self hx action: #save }}>
+      <form class="note-form" {{ self hx action: #save: }}>
         <input name="text" value="{{ text }}" autofocus>
         <button type="submit">Save</button>
-        <button type="button" {{ self hx action: #cancel }}>Cancel</button>
+        <button type="button" {{ self hx action: #cancel: }}>Cancel</button>
       </form>
     ]
     ifFalse: [
       <p>{{ text }}</p>
-      <button {{ self hx action: #edit }}>Edit</button>
+      <button {{ self hx action: #edit: }}>Edit</button>
     ]
 </div>
 ]

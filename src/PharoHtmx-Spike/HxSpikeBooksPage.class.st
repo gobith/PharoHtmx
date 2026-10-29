@@ -33,7 +33,7 @@ HxSpikeBooksPage >> render [
 <h1>Books</h1>
 <input type="search" name="q" value="{{ self query }}" placeholder="Search for a title…"
   {{ self hx
-       action: #search of: HxSpikeBookList;
+       action: #search: of: HxSpikeBookList;
        triggerOnInputDelay: 300 milliSeconds;
        target: '#book-list';
        swapOuter }}>

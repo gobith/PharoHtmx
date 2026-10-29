@@ -41,14 +41,14 @@ HxRazorFormatterTest >> testCascadeInDoubleBraces [
 		assertLines: (self format: 'render
 <span class="clock"
 {{ self hx
-action: #tick;
+action: #tick:;
 swapOuter }}>
 {{ self time }}
 </span>')
 		equals: 'render
 <span class="clock"
   {{ self hx
-       action: #tick;
+       action: #tick:;
        swapOuter }}>
   {{ self time }}
 </span>'

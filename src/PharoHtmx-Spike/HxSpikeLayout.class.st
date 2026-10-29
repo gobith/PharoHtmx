@@ -42,7 +42,7 @@ HxSpikeLayout >> render [
     <style>
       body {
         font-family: system-ui, sans-serif;
-        max-width: 44rem;
+        max-width: 76rem;
         margin: 0 auto;
         padding: 0 1rem 3rem;
         color: #18181b;
@@ -255,6 +255,29 @@ HxSpikeLayout >> render [
         overflow-x: auto;
         tab-size: 4;
         font-size: .8rem;
+        max-height: 28rem;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+      .code-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .code-grid > div {
+        min-width: 0;
+      }
+      .code-grid h3 {
+        margin: .75rem 0 .25rem;
+        font-size: .75rem;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: #71717a;
+      }
+      @media (max-width: 56rem) {
+        .code-grid {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>

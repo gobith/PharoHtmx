@@ -10,11 +10,11 @@ Class {
 HxHtmxAttributesTest >> testActionTakesTheMethodAndPathFromTheEndpoint [
 
 	| hx |
-	hx := (HxHtmxAttributes for: HxTestGreeter) action: #wave.
+	hx := (HxHtmxAttributes for: HxTestGreeter) action: #wave:.
 	self assert: hx attributes associations asArray equals: { ('hx-get' -> '/HxTestGreeter/wave') }.
-	hx := (HxHtmxAttributes for: HxTestGreeter) action: #hello with: 'Ann'.
+	hx := (HxHtmxAttributes for: HxTestGreeter) action: #hello: with: 'Ann'.
 	self assert: (hx at: 'hx-get') equals: '/greet/Ann'.
-	hx := HxHtmxAttributes new action: #whoAmI of: HxTestGreeter.
+	hx := HxHtmxAttributes new action: #whoAmI: of: HxTestGreeter.
 	self assert: (hx at: 'hx-post') equals: '/greet'
 ]
 

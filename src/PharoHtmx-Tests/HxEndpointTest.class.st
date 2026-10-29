@@ -16,6 +16,17 @@ HxEndpointTest >> testAllIn [
 ]
 
 { #category : 'tests' }
+HxEndpointTest >> testClearErrors [
+	"A selector without its colon, an unknown selector and a method without an endpoint pragma each say what is wrong."
+
+	| messageOf |
+	messageOf := [ :selector | [ HxEndpoint in: HxTestGreeter selector: selector. nil ] on: Error do: [ :error | error messageText ] ].
+	self assert: ((messageOf value: #wave) includesSubstring: 'write #wave: with the colon').
+	self assert: ((messageOf value: #wav:) includesSubstring: 'HxTestGreeter has no endpoint #wav:').
+	self assert: ((messageOf value: #notAnEndpoint) includesSubstring: 'is not an endpoint')
+]
+
+{ #category : 'tests' }
 HxEndpointTest >> testDescription [
 
 	| endpoint |
@@ -43,7 +54,7 @@ HxEndpointTest >> testDispatch [
 HxEndpointTest >> testGeneratedPath [
 
 	| endpoint router |
-	endpoint := HxEndpoint in: HxTestGreeter selector: #wave.
+	endpoint := HxEndpoint in: HxTestGreeter selector: #wave:.
 	self assert: endpoint httpMethod equals: #GET.
 	self assert: endpoint pattern equals: '/HxTestGreeter/wave'.
 	router := HxRouter routes: (HxEndpoint allIn: HxTestGreeter).

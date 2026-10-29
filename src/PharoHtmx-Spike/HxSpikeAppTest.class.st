@@ -224,6 +224,17 @@ HxSpikeAppTest >> testShowcasePage [
 	self assert: (html includesSubstring: 'HxSpikeClock class &gt;&gt; tick:')
 ]
 
+{ #category : 'tests - showcase' }
+HxSpikeAppTest >> testShowcaseShowsTheHtml [
+	"Next to the Smalltalk, the showcase shows the HTML that the components write, escaped."
+
+	| html |
+	html := (app handleRequest: (ZnRequest get: '/showcase')) contents.
+	self assert: (html allRangesOfSubstring: '<div class="code-grid">') size equals: 6.
+	self assert: (html includesSubstring: '&lt;span class=&quot;clock&quot;').
+	self assert: (html includesSubstring: 'hx-get=&quot;/HxSpikeClock/tick&quot;')
+]
+
 { #category : 'tests' }
 HxSpikeAppTest >> testUnknownBookIsNotFound [
 

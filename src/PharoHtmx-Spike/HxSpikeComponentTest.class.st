@@ -58,10 +58,10 @@ HxSpikeComponentTest >> testComponentInDoubleBraces [
 { #category : 'tests' }
 HxSpikeComponentTest >> testEndpointPaths [
 
-	self assert: (HxSpikeClock pathOf: #tick) equals: '/HxSpikeClock/tick'.
 	self assert: (HxSpikeClock pathOf: #tick:) equals: '/HxSpikeClock/tick'.
-	self assert: (HxSpikeTodoItem pathOf: #delete with: 7) equals: '/showcase/todos/7'.
-	self assert: ((HxSpikeNote text: 'x') path: #edit) equals: '/HxSpikeNote/edit'.
+	self assert: (HxSpikeClock pathOf: #tick:) equals: '/HxSpikeClock/tick'.
+	self assert: (HxSpikeTodoItem pathOf: #delete: with: 7) equals: '/showcase/todos/7'.
+	self assert: ((HxSpikeNote text: 'x') path: #edit:) equals: '/HxSpikeNote/edit'.
 	self assert: (HxSpikeCartTable endpoints collect: [ :each | each selector ]) asArray equals: #( #decrement: #increment: #remove: #clear: )
 ]
 

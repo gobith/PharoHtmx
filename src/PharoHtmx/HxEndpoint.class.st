@@ -11,7 +11,7 @@ The pragmas are <get>, <post>, <put>, <patch> and <delete>. Without a path, I ge
 
 The method gets the HxRequest, which knows the app (request app) and the path parameters, query and form fields (request at: #id). It answers a component, an HxHtmxResponse, a String of HTML or a ZnResponse.
 
-A template asks for my path with ""self path: #edit"" or ""self path: #delete with: todo id"". ""HxEndpoint allIn: aClass"" answers the endpoints of a class; an app lists the class in its #routes. The first line of the method comment is my #summary.
+A template asks for my path with ""self path: #edit:"" or ""self path: #delete: with: todo id"". ""HxEndpoint allIn: aClass"" answers the endpoints of a class; an app lists the class in its #routes. The first line of the method comment is my #summary.
 "
 Class {
 	#name : 'HxEndpoint',
@@ -28,31 +28,50 @@ Class {
 HxEndpoint class >> allIn: aClass [
 	"The endpoints that aClass declares in its class-side methods, ordered by path and HTTP method."
 
-	| endpoints |
-	endpoints := aClass classSide methods
-		             select: [ :each | each pragmas anySatisfy: [ :pragma | self pragmaSelectors includes: pragma selector ] ]
-		             thenCollect: [ :each | self method: each ].
-	^ endpoints sorted: [ :a :b |
-		  a pattern = b pattern
-			  ifTrue: [ a httpMethod <= b httpMethod ]
-			  ifFalse: [ a pattern <= b pattern ] ]
+	^ (aClass classSide methods select: [ :each | self isEndpoint: each ] thenCollect: [ :each | self method: each ]) sorted: [ :a :b |
+			  a pattern = b pattern
+				  ifTrue: [ a httpMethod <= b httpMethod ]
+				  ifFalse: [ a pattern <= b pattern ] ]
 ]
 
 { #category : 'instance creation' }
 HxEndpoint class >> in: aClass selector: aSelector [
-	"The endpoint of aClass in its class-side method aSelector; #edit stands for #edit:."
+	"The endpoint of aClass in its class-side method aSelector, as in #tick:."
 
-	| selector |
-	selector := (aSelector endsWith: ':')
-		            ifTrue: [ aSelector asSymbol ]
-		            ifFalse: [ (aSelector , ':') asSymbol ].
-	^ self method: aClass classSide >> selector
+	| method |
+	method := aClass classSide compiledMethodAt: aSelector asSymbol ifAbsent: [ ^ self noEndpoint: aSelector in: aClass ].
+	(self isEndpoint: method) ifFalse: [ ^ self notAnEndpoint: method ].
+	^ self method: method
+]
+
+{ #category : 'pragmas' }
+HxEndpoint class >> isEndpoint: aCompiledMethod [
+	"Does aCompiledMethod have a <get>, <post>, <put>, <patch> or <delete> pragma?"
+
+	^ aCompiledMethod pragmas anySatisfy: [ :each | self pragmaSelectors includes: each selector ]
 ]
 
 { #category : 'instance creation' }
 HxEndpoint class >> method: aCompiledMethod [
 
 	^ self new setMethod: aCompiledMethod
+]
+
+{ #category : 'errors' }
+HxEndpoint class >> noEndpoint: aSelector in: aClass [
+	"aClass has no class-side method aSelector. When it has one with a colon more, the colon is what is missing."
+
+	((aSelector endsWith: ':') not and: [ aClass classSide includesSelector: (aSelector , ':') asSymbol ]) ifTrue: [
+		^ self error: aClass name , ' has no endpoint #' , aSelector , '; write #' , aSelector , ': with the colon' ].
+	^ self error: aClass name , ' has no endpoint #' , aSelector
+]
+
+{ #category : 'errors' }
+HxEndpoint class >> notAnEndpoint: aCompiledMethod [
+	"aCompiledMethod exists but has no endpoint pragma."
+
+	^ self error: aCompiledMethod methodClass instanceSide name , ' class>>#' , aCompiledMethod selector
+		  , ' is not an endpoint: it has no <get>, <post>, <put>, <patch> or <delete> pragma'
 ]
 
 { #category : 'pragmas' }

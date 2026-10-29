@@ -33,7 +33,7 @@ HxSpikeTodoItem >> render [
   <span>{{ todo text }}</span>
   <button
     {{ self hx
-         action: #delete with: todo id;
+         action: #delete: with: todo id;
          confirm: 'Delete this item?';
          targetClosest: 'li';
          swapOuter }}>

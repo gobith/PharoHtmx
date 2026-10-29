@@ -2,7 +2,7 @@
 I am the htmx attributes of one element, built with messages instead of typed by hand. A component hands me out with #hx; a {{ }} in a view writes me as attributes. Each message sets one attribute, so a cascade reads as a list of what the element does:
 
 	<button {{ self hx
-	             action: #delete with: todo id;
+	             action: #delete: with: todo id;
 	             confirm: 'Delete this item?';
 	             targetClosest: 'li';
 	             swapOuter }}>Delete</button>
@@ -47,7 +47,7 @@ HxHtmxAttributes class >> new [
 { #category : 'request' }
 HxHtmxAttributes >> action: anAction [
 	"Send a request to my component's endpoint anAction when the element is triggered (a click for a button, a submit for a form). The HTTP method comes from the endpoint's pragma: <get> writes hx-get, <post> hx-post, and so on, with the endpoint's path as the value.
-		self hx action: #edit
+		self hx action: #edit:
 	writes hx-get with /HxSpikeNote/edit."
 
 	| endpoint |
@@ -58,7 +58,7 @@ HxHtmxAttributes >> action: anAction [
 { #category : 'request' }
 HxHtmxAttributes >> action: anAction of: aComponentClass [
 	"Like #action:, for an endpoint of another component.
-		self hx action: #load of: HxSpikeStats"
+		self hx action: #load: of: HxSpikeStats"
 
 	| endpoint |
 	endpoint := HxEndpoint in: aComponentClass selector: anAction.
@@ -77,7 +77,7 @@ HxHtmxAttributes >> action: anAction of: aComponentClass with: anObject [
 { #category : 'request' }
 HxHtmxAttributes >> action: anAction with: anObject [
 	"Like #action:, for an endpoint whose path has a parameter: anObject fills it in (a Dictionary for several). Values that are not path parameters go into the query string.
-		self hx action: #delete with: todo id
+		self hx action: #delete: with: todo id
 	writes hx-delete with /showcase/todos/7."
 
 	| endpoint |

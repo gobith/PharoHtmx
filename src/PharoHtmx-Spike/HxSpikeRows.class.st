@@ -80,7 +80,7 @@ HxSpikeRows >> render [
   ifTrue: [
     <tr
       {{ self hx
-           action: #more with: (Dictionary with: #page -> (page + 1));
+           action: #more: with: (Dictionary with: #page -> (page + 1));
            triggerIntersectOnce;
            swapOuter }}>
       <td colspan="2" class="muted">Loading more…</td>
