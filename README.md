@@ -1,6 +1,10 @@
-# PharoHtmx
+# GeoHtmx
 
-A small [htmx](https://htmx.org) web UI framework for [Pharo](https://pharo.org) 14, built on Zinc.
+A small [htmx](https://htmx.org) web UI framework for [Pharo](https://pharo.org) 14, built on Zinc. It comes in modules:
+
+- **GeoRazor**: HTML templates in methods, with components and editor support. Knows no web or htmx.
+- **GeoHttp**: a small web server layer on Zinc: routing, endpoints, sessions and CSRF. Knows no HTML or htmx.
+- **GeoHtmx**: htmx on top of both, with forms from Magritte and a demo.
 
 > **Status: playground.** This is a spike to try out ideas. Names, packages and syntax will change, and the parts will later move to repositories of their own.
 
@@ -21,12 +25,12 @@ Metacello new
 	lock.
 
 Metacello new
-	baseline: 'PharoHtmx';
+	baseline: 'GeoHtmx';
 	repository: 'github://gobith/PharoHtmx:main/src';
 	load.
 ```
 
-To load only part of it, add `load: #( 'Core' )` (or `'Razor'`, `'Magritte'`, `'Spike'`, `'Tests'`). Only the `Magritte` group and the demo need Grease and Magritte.
+To load only part of it, add `load: #( 'Core' )` (or `'Magritte'`, `'Demo'`, `'Tests'`). Only the `Magritte` group and the demo need Grease and Magritte, and only they need the two steps before. GeoRazor and GeoHttp load on their own with the baselines `GeoRazor` and `GeoHttp`.
 
 ## Demo
 
@@ -35,8 +39,8 @@ A bookshop with live search, a detail panel and a cart, built from components. `
 `/showcase` shows common htmx patterns working, each with the code of its component and route: lazy loading, polling, infinite scroll, inline editing, adding and deleting with a form, events from the server, and a form made from Magritte descriptions.
 
 ```smalltalk
-HxSpikeApp start.    "http://localhost:8090"
-HxSpikeApp stop.
+GeoDemoApp start.    "http://localhost:8090"
+GeoDemoApp stop.
 ```
 
 ## Components
@@ -44,26 +48,26 @@ HxSpikeApp stop.
 A component is one piece of UI in one class: its props are instance variables, its logic is plain Smalltalk, and its HTML is in its render methods.
 
 ```smalltalk
-HxComponent << #HxSpikeBookRow
+GeoComponent << #GeoDemoBookRow
 	slots: { #book };
-	package: 'PharoHtmx-Spike';
+	package: 'GeoHtmx-Demo';
 	tag: 'Components'.
 
-HxSpikeBookRow class >> book: aBook [ ^ self new setBook: aBook ]
-HxSpikeBookRow >> setBook: aBook [ book := aBook ]
+GeoDemoBookRow class >> book: aBook [ ^ self new setBook: aBook ]
+GeoDemoBookRow >> setBook: aBook [ book := aBook ]
 ```
 
 ```
 render
 <li>
-  <a href="{{ HxSpikeBookDetail pathOf: #show: with: book id }}"
+  <a href="{{ GeoDemoBookDetail pathOf: #show: with: book id }}"
     {{ self hx
-         action: #show: of: HxSpikeBookDetail with: book id;
+         action: #show: of: GeoDemoBookDetail with: book id;
          target: '#detail' }}>
     {{ book title }}
   </a>
   <span class="price">{{ book priceString }}</span>
-  {{ HxSpikeAddButton book: book }}
+  {{ GeoDemoAddButton book: book }}
 </li>
 ```
 
@@ -78,9 +82,9 @@ render
 A page is a component with a path. Its class side has a `pattern`, and the app lists it in `routes`. A page answers the whole document: the app puts it in a layout with `layoutFor:`.
 
 ```smalltalk
-HxSpikeApp >> layoutFor: aPage [
-	^ HxSpikeLayout
-		  header: (HxSpikeHeader cart: self cart)
+GeoDemoApp >> layoutFor: aPage [
+	^ GeoDemoLayout
+		  header: (GeoDemoHeader cart: self cart)
 		  page: aPage
 ]
 ```
@@ -92,7 +96,7 @@ The layout's `render` writes the head, then `{{ header }}`, then `{{ page }}`.
 A component answers requests in its class-side methods. A pragma names the HTTP method; the method gets the request and answers what goes back. One component stands for one thing on the page, with its states and its actions:
 
 ```
-HxSpikeNote >> render
+GeoDemoNote >> render
 <div id="note" class="box note" {{ self hx targetThis; swapOuter }}>
   @self isEditing
     ifTrue: [
@@ -110,13 +114,13 @@ HxSpikeNote >> render
 ```
 
 ```smalltalk
-HxSpikeNote class >> edit: request [
+GeoDemoNote class >> edit: request [
 	"Swap the text for a form that edits it."
 	<get>
 	^ (self text: request app showcase note) beEditing; yourself
 ]
 
-HxSpikeNote class >> save: request [
+GeoDemoNote class >> save: request [
 	"Store the text from the form and show it."
 	<put>
 	request app showcase note: (request at: #text ifAbsent: [ '' ]).
@@ -124,17 +128,17 @@ HxSpikeNote class >> save: request [
 ]
 ```
 
-- The pragmas are `<get>`, `<post>`, `<put>`, `<patch>` and `<delete>`. Without a path, an endpoint gets one from its class and selector: `/HxSpikeNote/edit`.
+- The pragmas are `<get>`, `<post>`, `<put>`, `<patch>` and `<delete>`. Without a path, an endpoint gets one from its class and selector: `/GeoDemoNote/edit`.
 - Give a path when the endpoint needs a parameter or when people see the URL: `<get: '/books/<id>'>`, `<delete: '/showcase/todos/<id>'>`.
-- A template sends a request to an action with `self hx action: #edit:` (see htmx below). Always write the full selector, colon included, so that implementors of it lead to the endpoint; `#edit` without the colon fails with a message that says so. For a plain link it asks for the path: `self path: #edit:`, `self path: #delete: with: todo id`, or `HxSpikeBookDetail pathOf: #show: with: book id` for another component. Values that are not path parameters go into the query string.
+- A template sends a request to an action with `self hx action: #edit:` (see htmx below). Always write the full selector, colon included, so that implementors of it lead to the endpoint; `#edit` without the colon fails with a message that says so. For a plain link it asks for the path: `self path: #edit:`, `self path: #delete: with: todo id`, or `GeoDemoBookDetail pathOf: #show: with: book id` for another component. Values that are not path parameters go into the query string.
 - `hx-target` and `hx-swap` inherit in htmx, so `targetThis; swapOuter` on the outer element makes every button inside replace the whole component.
 - `request at: #id` reads a path parameter, query parameter or form field, and `request app` is the app.
-- An endpoint answers a component, an `HxHtmxResponse`, a String of HTML or a `ZnResponse`.
+- An endpoint answers a component, an `GeoHtmxResponse`, a String of HTML or a `ZnResponse`.
 - An app lists its pages, components and route classes in `routes`. A class that is not in the list answers nothing. The list is read for every request, so a change to it works at once on a running server, and `/routes` shows every endpoint in its order.
 - When two endpoints match, the one with fewer parameters wins, so `/cart/clear` goes before `/cart/<id>`.
 - The first line of the method comment is the endpoint's `summary`, which the overview shows.
 
-A page has its path on its class side (`pattern`) and answers itself in the layout. For a request without UI, such as a redirect, a subclass of `HxRoute` has `pattern` on its class side and `handle` on its instance side.
+A page has its path on its class side (`pattern`) and answers itself in the layout. For a request without UI, such as a redirect, a subclass of `GeoRoute` has `pattern` on its class side and `handle` on its instance side.
 
 ## htmx
 
@@ -159,7 +163,7 @@ writes
 
 - `action:` takes the HTTP method from the endpoint's pragma, so `hx-get`, `hx-post`, `hx-put` and `hx-delete` always match the endpoint. `action:of:` names an endpoint of another component; `get:`, `post:` and the like take a URL.
 - A misspelt message shows up in the editor and fails when the view renders, where the browser ignores a misspelt attribute without a word. Code completion on `self hx` shows what htmx can do.
-- A cascade that two elements share goes in a method of the component, as `addAction` in `HxSpikeAddButton`.
+- A cascade that two elements share goes in a method of the component, as `addAction` in `GeoDemoAddButton`.
 - `attribute:value:` writes an attribute that has no message, such as `hx-ext`. Plain `hx-` attributes in the HTML still work.
 
 | Group | Messages |
@@ -177,13 +181,13 @@ Every message has a comment that says what it does and which attribute it writes
 
 What needs the server has a class of its own:
 
-- `HxHtmxScript` is a component that loads htmx: `{{ HxHtmxScript new }}` in the head of a layout.
-- `request htmx` is an `HxHtmxRequest`: whether htmx sent the request, whether it was boosted, its target, its trigger, the current URL and the answer to an `hx-prompt`.
-- `HxHtmxResponse` is an answer for htmx: the HTML for the target, components to swap out of band, and the response headers.
+- `GeoHtmxScript` is a component that loads htmx: `{{ GeoHtmxScript new }}` in the head of a layout.
+- `request htmx` is an `GeoHtmxRequest`: whether htmx sent the request, whether it was boosted, its target, its trigger, the current URL and the answer to an `hx-prompt`.
+- `GeoHtmxResponse` is an answer for htmx: the HTML for the target, components to swap out of band, and the response headers.
 
 ```smalltalk
-^ (HxHtmxResponse with: (HxSpikeBookList books: books))
-	  addOutOfBand: (HxSpikeCartLink cart: cart);
+^ (GeoHtmxResponse with: (GeoDemoBookList books: books))
+	  addOutOfBand: (GeoDemoCartLink cart: cart);
 	  replaceUrl: '/books?q=go';
 	  trigger: 'cart-changed';
 	  yourself
@@ -201,10 +205,10 @@ What needs the server has a class of its own:
 
 ## Forms
 
-The `PharoHtmx-Magritte` module builds forms from [Magritte](https://github.com/magritte-metamodel/magritte) descriptions. An object describes its fields once, with their rules:
+The `GeoHtmx-Magritte` module builds forms from [Magritte](https://github.com/magritte-metamodel/magritte) descriptions. An object describes its fields once, with their rules:
 
 ```smalltalk
-HxSpikeBook >> descriptionPrice [
+GeoDemoBook >> descriptionPrice [
 	"The price in euro cents: required, from 0 to 1000 euro."
 	<magritteDescription>
 	^ MANumberDescription new
@@ -218,12 +222,12 @@ HxSpikeBook >> descriptionPrice [
 ]
 ```
 
-`HxMagritteForm` turns those descriptions into a form, reads the values of a request, validates them, and only then writes them to the object. A wrong value shows the form again with what the visitor typed and a message under the field:
+`GeoMagritteForm` turns those descriptions into a form, reads the values of a request, validates them, and only then writes them to the object. A wrong value shows the form again with what the visitor typed and a message under the field:
 
 ```smalltalk
-form := (HxMagritteForm on: book)
+form := (GeoMagritteForm on: book)
 	        submit: (self hx action: #save: with: book id; target: '#detail');
-	        cancel: (self hx action: #show: of: HxSpikeBookDetail with: book id; target: '#detail');
+	        cancel: (self hx action: #show: of: GeoDemoBookDetail with: book id; target: '#detail');
 	        yourself.
 
 "in the endpoint that the form submits to"
@@ -232,9 +236,9 @@ form := (HxMagritteForm on: book)
 	ifFalse: [ "answer the form, which shows its errors" ]
 ```
 
-- `HxMagritteFieldBuilder` visits each description and picks its field: a text field, a number field, a text area or a checkbox. A visit method adds another kind.
+- `GeoMagritteFieldBuilder` visits each description and picks its field: a text field, a number field, a text area or a checkbox. A visit method adds another kind.
 - The form works on a Magritte memento, so the object stays as it is until all values are valid.
-- In the demo, Edit in a book's detail panel opens `HxSpikeBookEditor`; Save shows the details again and updates the book's row in the list out of band.
+- In the demo, Edit in a book's detail panel opens `GeoDemoBookEditor`; Save shows the details again and updates the book's row in the list out of band.
 
 ## Sessions and CSRF
 
@@ -248,8 +252,8 @@ The layout puts the token on the body, and every htmx request of the page sends 
 
 - `request session` is the visitor's session (a `ZnServerSession` from Zinc), with `attributeAt:put:` for data of your own.
 - `request csrfToken` is the token of the session. A plain form without htmx sends it as the field `csrf-token`.
-- `HxSessionManager` makes the session id with `HxSecureRandom` and sets the cookie `HttpOnly` and `SameSite=Lax`. Behind HTTPS, `app sessions beSecure` adds `Secure`.
-- `HxSecureRandom` takes its bytes from the operating system: `/dev/urandom` on Linux and macOS, `BCryptGenRandom` on Windows. Pharo's `Random` is not unpredictable enough for secrets.
+- `GeoSessionManager` makes the session id with `GeoSecureRandom` and sets the cookie `HttpOnly` and `SameSite=Lax`. Behind HTTPS, `app sessions beSecure` adds `Secure`.
+- `GeoSecureRandom` takes its bytes from the operating system: `/dev/urandom` on Linux and macOS, `BCryptGenRandom` on Windows. Pharo's `Random` is not unpredictable enough for secrets.
 - An app that no browser uses, such as an API for other programs, overrides `checksCsrf` to answer false.
 
 ## Razor syntax
@@ -273,17 +277,20 @@ Format keeps the line breaks and sets the indentation, so a formatted method sta
 
 ## Packages
 
-| Package | Group | Contents |
-|---|---|---|
-| `PharoHtmx` | Core | `HxApp`, a Zinc server delegate; the routing: `HxEndpoint`, `HxTRoute`, `HxRoute`, `HxRoutePattern`, `HxRouter`; htmx: `HxHtmxAttributes`, `HxHtmxRequest`, `HxHtmxResponse`; security: `HxSessionManager`, `HxSecureRandom` |
-| `PharoHtmx-Razor` | Razor | `HxComponent`, `HxPage` and `HxHtmxScript`, the Razor compiler, formatter, highlighting and debugger support. Needs Core. |
-| `PharoHtmx-Magritte` | Magritte | `HxMagritteForm` and its fields: forms from Magritte descriptions. Needs Razor, Magritte and Grease. |
-| `PharoHtmx-Spike` | Spike | The bookshop demo, its tests and the Razor tests |
-| `PharoHtmx-Tests` | Tests | Routing, htmx and security tests, and their test routes |
+| Package | Baseline and group | Contents | May use |
+|---|---|---|---|
+| `GeoRazor` | GeoRazor, Core | `GeoComponent`, `GeoHtmlWriter`, the Razor compiler, formatter, highlighting and debugger support | no other Geo package |
+| `GeoHttp` | GeoHttp, Core | `GeoApp`, routing (`GeoEndpoint`, `GeoTRoute`, `GeoRoute`, `GeoRoutePattern`, `GeoRouter`, `GeoRequest`), security (`GeoSessionManager`, `GeoSecureRandom`) | no other Geo package |
+| `GeoHtmx` | GeoHtmx, Core | `GeoPage`, `GeoHtmxAttributes`, `GeoHtmxRequest`, `GeoHtmxResponse`, `GeoHtmxScript`; endpoints, `hx` and `asZnResponse` on components as extension methods | GeoRazor, GeoHttp |
+| `GeoHtmx-Magritte` | GeoHtmx, Magritte | `GeoMagritteForm` and its fields. Needs Magritte and Grease. | GeoRazor, GeoHttp, GeoHtmx |
+| `GeoHtmx-Demo` | GeoHtmx, Demo | The bookshop, the showcase, their tests and `GeoArchitectureTest` | all |
+| `GeoRazor-Tests`, `GeoHttp-Tests`, `GeoHtmx-Tests` | Tests of each baseline | The tests of each module | their module |
+
+`GeoArchitectureTest` fails when a package uses a Geo package that this table does not allow, so a lower layer never comes to know a higher one.
 
 ## Changes to Pharo itself
 
-`PharoHtmx-Razor` replaces three methods in Pharo 14 so that the editor and the debugger understand render methods. Each override keeps the original in its comment. Plain Smalltalk methods behave as before.
+`GeoRazor` replaces three methods in Pharo 14 so that the editor and the debugger understand render methods. Each override keeps the original in its comment. Plain Smalltalk methods behave as before.
 
 - `RubSmalltalkCodeMode>>parseSource:` — parse with the class's own parser, for Format.
 - `OnlineSourceDebugInfo>>rangeForPC:` — let the method node map the highlighted range.
