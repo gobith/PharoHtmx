@@ -5,7 +5,9 @@ Class {
 	#name : 'HxSpikeAppTest',
 	#superclass : 'TestCase',
 	#instVars : [
-		'app'
+		'app',
+		'cookie',
+		'token'
 	],
 	#category : 'PharoHtmx-Spike',
 	#package : 'PharoHtmx-Spike'
@@ -16,14 +18,28 @@ HxSpikeAppTest >> htmx: aZnRequest [
 	"Answer the body of the response to aZnRequest sent the way htmx sends it."
 
 	aZnRequest headers at: 'HX-Request' put: 'true'.
-	^ (app handleRequest: aZnRequest) contents
+	^ (self send: aZnRequest) contents
+]
+
+{ #category : 'helpers' }
+HxSpikeAppTest >> send: aZnRequest [
+	"Send aZnRequest as a browser on one of the app's pages does: with the session cookie and the CSRF token of the page. Keep the cookie the app sets."
+
+	| response |
+	cookie ifNotNil: [ aZnRequest headers at: 'Cookie' put: cookie ].
+	token ifNotNil: [ aZnRequest headers at: 'X-CSRF-Token' put: token ].
+	response := app handleRequest: aZnRequest.
+	response cookies do: [ :each | each name = app sessions cookieName ifTrue: [ cookie := each nameValueString ] ].
+	^ response
 ]
 
 { #category : 'running' }
 HxSpikeAppTest >> setUp [
+	"A fresh app, visited once as a browser would, which gives the session cookie and the CSRF token of the page."
 
 	super setUp.
-	app := HxSpikeApp new
+	app := HxSpikeApp new.
+	token := self tokenIn: (self send: (ZnRequest get: '/books')) contents
 ]
 
 { #category : 'tests - showcase' }
@@ -65,7 +81,7 @@ HxSpikeAppTest >> testBookDetail [
 HxSpikeAppTest >> testBooksPageIsLayoutWithHeaderAndPage [
 
 	| html |
-	html := (app handleRequest: (ZnRequest get: '/books')) contents.
+	html := (self send: (ZnRequest get: '/books')) contents.
 	self assert: (html beginsWith: '<!DOCTYPE html>').
 	self assert: (html includesSubstring: '<title>Books · PharoHtmx</title>').
 	self assert: (html includesSubstring: '<a id="cart-link" href="/cart">Cart (0)</a>').
@@ -78,7 +94,7 @@ HxSpikeAppTest >> testBooksPageIsLayoutWithHeaderAndPage [
 HxSpikeAppTest >> testBooksPageKeepsTheQuery [
 
 	| html |
-	html := (app handleRequest: (ZnRequest get: '/books?q=go')) contents.
+	html := (self send: (ZnRequest get: '/books?q=go')) contents.
 	self assert: (html includesSubstring: 'value="go"').
 	self assert: (html includesSubstring: 'Going Postal').
 	self deny: (html includesSubstring: 'Mort')
@@ -91,7 +107,7 @@ HxSpikeAppTest >> testCartPage [
 	self htmx: (ZnRequest post: '/cart/1').
 	self htmx: (ZnRequest post: '/cart/3').
 	self htmx: (ZnRequest post: '/cart/3').
-	html := (app handleRequest: (ZnRequest get: '/cart')) contents.
+	html := (self send: (ZnRequest get: '/cart')) contents.
 	self assert: (html includesSubstring: '<title>Cart · PharoHtmx</title>').
 	self assert: (html includesSubstring: 'Cart (3)').
 	self assert: (html includesSubstring: '€25.00').
@@ -124,7 +140,7 @@ HxSpikeAppTest >> testClockAndStats [
 HxSpikeAppTest >> testEmptyCartPage [
 
 	| html |
-	html := (app handleRequest: (ZnRequest get: '/cart')) contents.
+	html := (self send: (ZnRequest get: '/cart')) contents.
 	self assert: (html includesSubstring: 'Your cart is empty').
 	self deny: (html includesSubstring: '<table>').
 	self deny: (html includesSubstring: 'ifFalse:')
@@ -162,7 +178,7 @@ HxSpikeAppTest >> testInlineEditing [
 HxSpikeAppTest >> testPingFiresAnEvent [
 
 	| response |
-	response := app handleRequest: (ZnRequest post: '/HxSpikePings/ping').
+	response := self send: (ZnRequest post: '/HxSpikePings/ping').
 	self assert: (response headers at: 'HX-Trigger') equals: 'pinged'.
 	self assert: ((self htmx: (ZnRequest get: '/HxSpikePings/reload')) includesSubstring: 'Pings: 1')
 ]
@@ -182,7 +198,7 @@ HxSpikeAppTest >> testRemoveAndClear [
 HxSpikeAppTest >> testRoutesPage [
 
 	| html |
-	html := (app handleRequest: (ZnRequest get: '/routes')) contents.
+	html := (self send: (ZnRequest get: '/routes')) contents.
 	self assert: (html includesSubstring: '<title>Routes · PharoHtmx</title>').
 	self assert: (html includesSubstring: '<a href="/cart"><code>/cart</code></a>').
 	self assert: (html includesSubstring: '<code>/cart/&lt;id&gt;/increment</code>').
@@ -207,9 +223,9 @@ HxSpikeAppTest >> testSearchPutsTheQueryInTheAddressBar [
 	| request response |
 	request := ZnRequest get: '/HxSpikeBookList/search?q=go'.
 	request headers at: 'HX-Request' put: 'true'.
-	response := app handleRequest: request.
+	response := self send: request.
 	self assert: (response headers at: 'HX-Replace-Url') equals: '/books?q=go'.
-	response := app handleRequest: (ZnRequest get: '/HxSpikeBookList/search?q=').
+	response := self send: (ZnRequest get: '/HxSpikeBookList/search?q=').
 	self assert: (response headers at: 'HX-Replace-Url') equals: '/books'
 ]
 
@@ -217,7 +233,7 @@ HxSpikeAppTest >> testSearchPutsTheQueryInTheAddressBar [
 HxSpikeAppTest >> testShowcasePage [
 
 	| html |
-	html := (app handleRequest: (ZnRequest get: '/showcase')) contents.
+	html := (self send: (ZnRequest get: '/showcase')) contents.
 	self assert: (html includesSubstring: '<title>htmx showcase · PharoHtmx</title>').
 	self assert: (html allRangesOfSubstring: '<section class="demo">') size equals: 6.
 	self assert: (html includesSubstring: 'hx-trigger="load"').
@@ -229,7 +245,7 @@ HxSpikeAppTest >> testShowcaseShowsTheHtml [
 	"Next to the Smalltalk, the showcase shows the HTML that the components write, escaped."
 
 	| html |
-	html := (app handleRequest: (ZnRequest get: '/showcase')) contents.
+	html := (self send: (ZnRequest get: '/showcase')) contents.
 	self assert: (html allRangesOfSubstring: '<div class="code-grid">') size equals: 6.
 	self assert: (html includesSubstring: '&lt;span class=&quot;clock&quot;').
 	self assert: (html includesSubstring: 'hx-get=&quot;/HxSpikeClock/tick&quot;')
@@ -238,6 +254,16 @@ HxSpikeAppTest >> testShowcaseShowsTheHtml [
 { #category : 'tests' }
 HxSpikeAppTest >> testUnknownBookIsNotFound [
 
-	self assert: (app handleRequest: (ZnRequest post: '/cart/99')) isNotFound.
-	self assert: (app handleRequest: (ZnRequest get: '/books/abc')) isNotFound
+	self assert: (self send: (ZnRequest post: '/cart/99')) isNotFound.
+	self assert: (self send: (ZnRequest get: '/books/abc')) isNotFound
+]
+
+{ #category : 'helpers' }
+HxSpikeAppTest >> tokenIn: aString [
+	"The CSRF token that the layout puts on the body."
+
+	| marker start |
+	marker := 'X-CSRF-Token&quot;:&quot;'.
+	start := (aString indexOfSubCollection: marker) + marker size.
+	^ aString copyFrom: start to: start + 63
 ]

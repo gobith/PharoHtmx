@@ -188,6 +188,22 @@ What needs the server has a class of its own:
 | `trigger:` / `trigger:with:` | `HX-Trigger` | Fires an event in the browser, with details as JSON |
 | `triggerAfterSwap:` / `triggerAfterSettle:` | `HX-Trigger-After-Swap` / `-Settle` | Fires an event later in the swap |
 
+## Sessions and CSRF
+
+Every visitor gets a session, with its cookie on the first response. A request that changes something (POST, PUT, PATCH, DELETE) must carry the CSRF token of its session, or the app answers 403 Forbidden. Another site can make a visitor's browser send a request, cookie included, but it cannot read the token from your pages.
+
+The layout puts the token on the body, and every htmx request of the page sends it along as the header `X-CSRF-Token`:
+
+```
+<body {{ self hx csrfToken: page csrfToken }}>
+```
+
+- `request session` is the visitor's session (a `ZnServerSession` from Zinc), with `attributeAt:put:` for data of your own.
+- `request csrfToken` is the token of the session. A plain form without htmx sends it as the field `csrf-token`.
+- `HxSessionManager` makes the session id with `HxSecureRandom` and sets the cookie `HttpOnly` and `SameSite=Lax`. Behind HTTPS, `app sessions beSecure` adds `Secure`.
+- `HxSecureRandom` takes its bytes from the operating system: `/dev/urandom` on Linux and macOS, `BCryptGenRandom` on Windows. Pharo's `Random` is not unpredictable enough for secrets.
+- An app that no browser uses, such as an API for other programs, overrides `checksCsrf` to answer false.
+
 ## Razor syntax
 
 The render methods of a component are HTML with Smalltalk in it, and the source you see in the browser stays HTML.
@@ -211,10 +227,10 @@ Format keeps the line breaks and sets the indentation, so a formatted method sta
 
 | Package | Group | Contents |
 |---|---|---|
-| `PharoHtmx` | Core | `HxApp`, a Zinc server delegate; the routing: `HxEndpoint`, `HxTRoute`, `HxRoute`, `HxRoutePattern`, `HxRouter`; htmx: `HxHtmxAttributes`, `HxHtmxRequest`, `HxHtmxResponse` |
+| `PharoHtmx` | Core | `HxApp`, a Zinc server delegate; the routing: `HxEndpoint`, `HxTRoute`, `HxRoute`, `HxRoutePattern`, `HxRouter`; htmx: `HxHtmxAttributes`, `HxHtmxRequest`, `HxHtmxResponse`; security: `HxSessionManager`, `HxSecureRandom` |
 | `PharoHtmx-Razor` | Razor | `HxComponent`, `HxPage` and `HxHtmxScript`, the Razor compiler, formatter, highlighting and debugger support. Needs Core. |
 | `PharoHtmx-Spike` | Spike | The bookshop demo, its tests and the Razor tests |
-| `PharoHtmx-Tests` | Tests | Routing and htmx tests, and their test routes |
+| `PharoHtmx-Tests` | Tests | Routing, htmx and security tests, and their test routes |
 
 ## Changes to Pharo itself
 

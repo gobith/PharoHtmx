@@ -1,5 +1,5 @@
 "
-The document around a page: the head with the scripts and the styles, the header, and the page.
+The document around a page: the head with the scripts and the styles, the header, and the page. The body carries the CSRF token of the session, so that every htmx request of the page sends it.
 "
 Class {
 	#name : 'HxSpikeLayout',
@@ -281,7 +281,7 @@ HxSpikeLayout >> render [
       }
     </style>
   </head>
-  <body>
+  <body {{ self hx csrfToken: page csrfToken }}>
     {{ header }}
     <main>
       {{ page }}

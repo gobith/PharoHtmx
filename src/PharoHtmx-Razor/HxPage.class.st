@@ -26,6 +26,13 @@ HxPage class >> endpoints [
 	^ { self } , super endpoints
 ]
 
+{ #category : 'security' }
+HxPage >> csrfToken [
+	"The CSRF token of the visitor's session, for the layout to put on the body with HxHtmxAttributes>>csrfToken:."
+
+	^ request csrfToken
+]
+
 { #category : 'handling' }
 HxPage >> handle [
 	"The whole document: the app's layout with me in it."

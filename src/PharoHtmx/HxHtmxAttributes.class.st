@@ -120,6 +120,14 @@ HxHtmxAttributes >> confirm: aQuestion [
 	^ self attribute: 'hx-confirm' value: aQuestion
 ]
 
+{ #category : 'values' }
+HxHtmxAttributes >> csrfToken: aToken [
+	"Send aToken as the header X-CSRF-Token with every request of this element and every element inside it. Put it on the body of the layout, so that all requests of the page carry the token that HxApp checks; see HxRequest>>csrfToken. Writes hx-headers.
+		<body {{ self hx csrfToken: page csrfToken }}>"
+
+	^ self headers: (Dictionary with: 'X-CSRF-Token' -> aToken)
+]
+
 { #category : 'request' }
 HxHtmxAttributes >> delete: aUrl [
 	"Send a DELETE request to aUrl. Writes hx-delete."
@@ -139,6 +147,13 @@ HxHtmxAttributes >> get: aUrl [
 	"Send a GET request to aUrl, a URL that is not an endpoint of a component. Writes hx-get."
 
 	^ self method: #GET url: aUrl
+]
+
+{ #category : 'values' }
+HxHtmxAttributes >> headers: aDictionary [
+	"Send the headers in aDictionary along with every request of this element and, because the attribute is inherited, of every element inside it. Writes hx-headers with JSON."
+
+	^ self attribute: 'hx-headers' value: (STONJSON toString: aDictionary)
 ]
 
 { #category : 'values' }
